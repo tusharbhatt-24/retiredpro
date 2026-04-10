@@ -1,0 +1,266 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums
+enum Role {
+  company
+  professional
+  admin
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ProjectStatus {
+  draft
+  open
+  active
+  completed
+  cancelled
+}
+
+enum AppStatus {
+  pending
+  shortlisted
+  accepted
+  rejected
+  withdrawn
+}
+
+enum ContractStatus {
+  draft
+  active
+  completed
+  disputed
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  in_escrow
+  released
+  refunded
+  failed
+}
+
+enum EventType {
+  virtual
+  in_person
+}
+
+enum EventStatus {
+  requested
+  confirmed
+  completed
+  cancelled
+}
+
+model User {
+  id                  String     @id @default(uuid())
+  email               String     @unique
+  password_hash       String
+  role                Role
+  is_email_verified   Boolean    @default(false)
+  is_phone_verified   Boolean    @default(false)
+  phone_number        String?
+  is_verified_by_admin Boolean   @default(false)
+  created_at          DateTime   @default(now())
+  updated_at          DateTime   @updatedAt
+
+  company             Company?
+  professional        Professional?
+
+  reviewsWritten      Review[]   @relation("WrittenReviews")
+  reviewsReceived     Review[]   @relation("ReceivedReviews")
+  
+  messagesSent        Message[]  @relation("SentMessages")
+  messagesReceived    Message[]  @relation("ReceivedMessages")
+}
+
+model Company {
+  id                  String     @id @default(uuid())
+  user_id             String     @unique
+  user                User       @relation(fields: [user_id], references: [id])
+  
+  company_name        String
+  gst_number          String?    @unique
+  cin_number          String?    @unique
+  pan_number          String?
+  official_website    String?
+  industry            String?
+  logo_url            String?
+  verification_status VerificationStatus @default(pending)
+  
+  created_at          DateTime   @default(now())
+
+  projects            Project[]
+  contracts           Contract[]
+  event_bookings      EventBooking[]
+}
+
+model Professional {
+  id                  String     @id @default(uuid())
+  user_id             String     @unique
+  user                User       @relation(fields: [user_id], references: [id])
+
+  full_name           String
+  ex_company_name     String?
+  ex_designation      String?
+  domain              String?
+  years_of_experience Int?
+  linkedin_url        String?
+  retirement_letter_url String?
+  pan_card_url        String?
+  photo_id_url        String?
+  
+  verification_status VerificationStatus @default(pending)
+  commission_rate     Decimal    @default(0.08)
+  
+  speaker_available   Boolean    @default(false)
+  speaker_topics      String[]
+  average_rating      Decimal?   @default(0)
+  total_projects_completed Int   @default(0)
+
+  applications        Application[]
+  contracts           Contract[]
+  event_bookings      EventBooking[]
+}
+
+model Project {
+  id                  String     @id @default(uuid())
+  company_id          String
+  company             Company    @relation(fields: [company_id], references: [id])
+  
+  title               String
+  description         String
+  domain_required     String?
+  experience_level    String?
+  budget              Decimal?
+  duration_in_days    Int?
+  
+  status              ProjectStatus @default(draft)
+  created_at          DateTime   @default(now())
+  updated_at          DateTime   @updatedAt
+
+  applications        Application[]
+  contracts           Contract[]
+  reviews             Review[]
+}
+
+model Application {
+  id                  String     @id @default(uuid())
+  project_id          String
+  project             Project    @relation(fields: [project_id], references: [id])
+  
+  professional_id     String
+  professional        Professional @relation(fields: [professional_id], references: [id])
+  
+  cover_note          String?
+  status              AppStatus  @default(pending)
+  applied_at          DateTime   @default(now())
+
+  @@unique([project_id, professional_id])
+}
+
+model Contract {
+  id                  String     @id @default(uuid())
+  project_id          String
+  project             Project    @relation(fields: [project_id], references: [id])
+  
+  professional_id     String
+  professional        Professional @relation(fields: [professional_id], references: [id])
+  
+  company_id          String
+  company             Company    @relation(fields: [company_id], references: [id])
+  
+  agreed_amount       Decimal
+  platform_commission Decimal
+  professional_payout Decimal
+  
+  start_date          DateTime?
+  end_date            DateTime?
+  
+  status              ContractStatus @default(draft)
+  signed_at           DateTime?
+
+  payments            Payment[]
+  messages            Message[]
+}
+
+model Payment {
+  id                  String     @id @default(uuid())
+  contract_id         String
+  contract            Contract   @relation(fields: [contract_id], references: [id])
+  
+  razorpay_order_id   String?
+  razorpay_payment_id String?
+  amount              Decimal
+  
+  status              PaymentStatus @default(pending)
+  paid_at             DateTime?
+}
+
+model EventBooking {
+  id                  String     @id @default(uuid())
+  company_id          String
+  company             Company    @relation(fields: [company_id], references: [id])
+  
+  professional_id     String
+  professional        Professional @relation(fields: [professional_id], references: [id])
+  
+  event_date          DateTime?
+  duration_hours      Decimal?
+  topic               String?
+  event_type          EventType  @default(virtual)
+  
+  agreed_fee          Decimal?
+  platform_commission Decimal?
+  
+  status              EventStatus @default(requested)
+  
+  reviews             Review[]
+}
+
+model Review {
+  id                  String     @id @default(uuid())
+  reviewer_id         String
+  reviewer            User       @relation("WrittenReviews", fields: [reviewer_id], references: [id])
+  
+  reviewee_id         String
+  reviewee            User       @relation("ReceivedReviews", fields: [reviewee_id], references: [id])
+  
+  project_id          String?
+  project             Project?   @relation(fields: [project_id], references: [id])
+  
+  event_booking_id    String?
+  event_booking       EventBooking? @relation(fields: [event_booking_id], references: [id])
+  
+  rating              Int        // 1 to 5
+  comment             String?
+  created_at          DateTime   @default(now())
+}
+
+model Message {
+  id                  String     @id @default(uuid())
+  sender_id           String
+  sender              User       @relation("SentMessages", fields: [sender_id], references: [id])
+  
+  receiver_id         String
+  receiver            User       @relation("ReceivedMessages", fields: [receiver_id], references: [id])
+  
+  contract_id         String?
+  contract            Contract?  @relation(fields: [contract_id], references: [id])
+  
+  content             String
+  is_read             Boolean    @default(false)
+  sent_at             DateTime   @default(now())
+}
