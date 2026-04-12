@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import './index.css';
 import ChatBot from './chatbot/ChatBot';
-import appSource from './App.jsx?raw';
-import stylesSource from './index.css?raw';
 
 function ProfessionalHome() {
   return (
@@ -1101,12 +1099,12 @@ function App() {
 
       {/* AI Chatbot Widget */}
       <ChatBot
-        systemPrompt="You are an assistant for RetiredPro — a platform that helps retired professionals find part-time consulting work, mentoring opportunities, and community events. You can answer questions about the platform AND make live changes to the UI when asked. Always explain what you're going to change before doing it."
+        systemPrompt="You are the official support assistant for RetiredPro — a platform that connects retired professionals with companies seeking expert guidance. Help users navigate their verification steps, understand platform features, and resolve common issues. Always be brief, professional, and to the point."
         botName="RetiredPro Assistant"
         primaryColor="#4f46e5"
         puterModel="claude-sonnet-4-6"
-        requireConfirmation={true}
-        codeContext={`${appSource}\n\n${stylesSource}`}
+        requireConfirmation={false}
+        codeContext=""
       />
     </div>
   );
