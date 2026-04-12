@@ -16,10 +16,11 @@ services:
   # Frontend Static Site
   - type: web
     name: retirepro-frontend
+    env: node
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishDir: dist
+    startCommand: npx serve -s dist
     envVars:
       - key: VITE_API_URL
         fromService:
