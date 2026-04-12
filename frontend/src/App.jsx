@@ -69,6 +69,8 @@ const LOCATION_DATA = {
   'Germany': ['Berlin', 'Hamburg', 'Munich', 'Cologne', 'Frankfurt', 'Stuttgart', 'Düsseldorf', 'Dortmund', 'Essen', 'Leipzig']
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5050';
+
 function ProfessionalSignup() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -321,7 +323,7 @@ function ProfessionalSignup() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5050/api/professionals/verify', {
+      const response = await fetch(`${API_BASE}/api/professionals/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -809,7 +811,7 @@ function CompanySignup() {
 
     // Final submission to backend
     try {
-      const response = await fetch('http://localhost:5050/api/companies/verify', {
+      const response = await fetch(`${API_BASE}/api/companies/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

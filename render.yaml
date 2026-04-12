@@ -1,0 +1,29 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: retirepro-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate
+    startCommand: node index.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Set as a Secret in Render UI
+      - key: PORT
+        value: 5050 # Matches the port used in App.jsx localhost (or 10000 for standard)
+
+  # Frontend Static Site
+  - type: static
+    name: retirepro-frontend
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: retirepro-backend
+          property: host
