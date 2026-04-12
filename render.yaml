@@ -14,7 +14,7 @@ services:
         value: 5050 # Matches the port used in App.jsx localhost (or 10000 for standard)
 
   # Frontend Static Site
-  - type: static
+  - type: web
     name: retirepro-frontend
     env: static
     plan: free
@@ -26,4 +26,4 @@ services:
         fromService:
           type: web
           name: retirepro-backend
-          property: host
+          property: url
