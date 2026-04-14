@@ -4,6 +4,7 @@ import './index.css';
 import ChatBot from './chatbot/ChatBot';
 import AuthPage from './AuthPage';
 import AuthSuccess from './pages/AuthSuccess';
+import ProfilePage from './pages/ProfilePage';
 
 function ProfessionalHome() {
   return (
@@ -1130,13 +1131,14 @@ function App() {
                 <>
                   <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Home</a>
                   <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Account</a>
-                  <button className="btn btn-primary">Our Talent</button>
+                  <button className="btn btn-outline" style={{ marginRight: '0.5rem' }}>Our Talent</button>
+                  <button className="btn btn-primary" onClick={() => setActiveView('profile')}>My Profile</button>
                 </>
               ) : (
                 <>
                   <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Find Jobs</a>
                   <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Expert Status</a>
-                  <button className="btn btn-primary">My Profile</button>
+                  <button className="btn btn-primary" onClick={() => setActiveView('profile')}>My Profile</button>
                 </>
               )}
 
@@ -1166,9 +1168,13 @@ function App() {
 
         {/* Conditional Rendering for Both Roles */}
         {userRole === 'Company' ? (
-          activeView === 'home' ? <CompanyHome /> : <CompanySignup />
+          activeView === 'home' ? <CompanyHome /> : 
+          activeView === 'verification' ? <CompanySignup /> :
+          <ProfilePage user={authData.user} userRole={userRole} onBack={() => setActiveView('home')} />
         ) : (
-          activeView === 'home' ? <ProfessionalHome /> : <ProfessionalSignup />
+          activeView === 'home' ? <ProfessionalHome /> : 
+          activeView === 'verification' ? <ProfessionalSignup /> :
+          <ProfilePage user={authData.user} userRole={userRole} onBack={() => setActiveView('home')} />
         )}
 
         {/* Footer */}

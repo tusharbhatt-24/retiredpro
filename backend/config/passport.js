@@ -16,7 +16,6 @@ if (!prisma) {
   prisma = {
     user: {
       findUnique: async ({ where }) => {
-        // Mock finding user by email
         if (where.email) return { id: 'oauth_mock_id', email: where.email, name: 'OAuth User', role: 'professional' };
         return null;
       },
@@ -39,12 +38,14 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5050';
+
 // Google Strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:5050/auth/google/callback'
+    callbackURL: `${BACKEND_URL}/auth/google/callback`
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       if (!profile.emails || !profile.emails[0]) {
@@ -74,7 +75,7 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
   passport.use(new LinkedInStrategy({
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    callbackURL: 'http://localhost:5050/auth/linkedin/callback',
+    callbackURL: `${BACKEND_URL}/auth/linkedin/callback`,
     scope: ['openid', 'profile', 'email']
   }, async (accessToken, refreshToken, profile, done) => {
     try {
