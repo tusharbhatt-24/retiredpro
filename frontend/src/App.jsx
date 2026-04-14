@@ -7,6 +7,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
   const [isParsing, setIsParsing] = useState(false);
   const [parsingProgress, setParsingProgress] = useState(0);
   const [isReviewing, setIsReviewing] = useState(false);
+  const [isManual, setIsManual] = useState(false);
   const [editData, setEditData] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -51,15 +52,39 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
     }, 150);
   };
 
+  const startManual = () => {
+    setEditData({
+      name: user.name || '',
+      gender: 'Male',
+      dob: '',
+      mobile: '',
+      industry: '',
+      years_of_experience: '',
+      expertise: '',
+      skills: '',
+      bio: '',
+      location: '',
+      ex_company: '',
+      ex_designation: '',
+      qualifications: ''
+    });
+    setIsManual(true);
+    setIsReviewing(true);
+  };
+
   if (isReviewing) {
     return (
       <div className="onboarding-container animate-fade-in">
         <div className="onboarding-card" style={{ textAlign: 'left', maxWidth: '700px' }}>
           <div className="flex justify-between items-center mb-4">
-            <h2 style={{ margin: 0 }}>Confirm Your Details</h2>
-            <span className="badge badge-success">Extraction Complete ⚡</span>
+            <h2 style={{ margin: 0 }}>{isManual ? 'Create Your Profile' : 'Confirm Your Details'}</h2>
+            {!isManual && <span className="badge badge-success">Extraction Complete ⚡</span>}
           </div>
-          <p className="text-secondary mb-8">We've pre-filled your profile using your resume. **Does this look correct?** You can edit any field below before finalizing.</p>
+          <p className="text-secondary mb-8">
+            {isManual 
+              ? 'Please fill in your professional details to set up your expert profile.' 
+              : "We've pre-filled your profile using your resume. **Does this look correct?**"}
+          </p>
           
           <div className="review-grid">
             <div className="form-group">
@@ -179,31 +204,25 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
         <div className="onboarding-header">
           <div className="step-badge">Welcome, {user.name.split(' ')[0]}!</div>
           <h2>Let's build your expert profile</h2>
-          <p>Quickly populate your profile by uploading your resume, or start from scratch.</p>
-        </div>
-
-        <div className="onboarding-options">
-          <div className="option-card upload" onClick={!isParsing ? handleResumeClick : undefined}>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              style={{ display: 'none' }} 
-              accept=".pdf,.doc,.docx" 
-              onChange={handleFileChange}
-            />
-            {isParsing ? (
-              <div className="parsing-loader">
-                <div className="spinner"></div>
-                <h4>Analyzing Resume...</h4>
-                <div className="progress-bar-bg mt-4" style={{ width: '100%' }}>
-                  <div className="progress-bar-fill" style={{ width: `${parsingProgress}%` }}></div>
+          <div className="onboarding-options">
+            <div className="option-card upload" onClick={!isParsing ? handleResumeClick : undefined}>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx"
+              />
+              <div className="option-icon">📄</div>
+              <h3>Auto-Fill with Resume</h3>
+              <p>Upload your resume and we'll build your profile in seconds.</p>
+              {isParsing && (
+                <div className="parsing-status mt-4">
+                  <div className="progress-bar-bg">
+                    <div className="progress-bar-fill" style={{ width: `${parsingProgress}%` }}></div>
+                  </div>
+                  <span className="small mt-2 d-block">Analyzing resume... {parsingProgress}%</span>
                 </div>
-                <p className="small text-secondary mt-2">Extracting expertise, years, and skills...</p>
-              </div>
-            ) : (
-              <>
-                <div className="option-icon">📄</div>
-                <h3>Upload Resume</h3>
                 <p>We'll use AI to extract your career milestones and skills.</p>
                 <button className="btn btn-primary mt-4">Select PDF/DOCX</button>
               </>
