@@ -9,11 +9,13 @@ const ProfilePage = ({ user, userRole, onBack }) => {
     { id: 'overview', label: 'Company Overview', icon: '🏢' },
     { id: 'professional', label: 'Hiring Preferences', icon: '🔍' },
     { id: 'financial', label: 'Spending & Contracts', icon: '💳' },
+    { id: 'resume', label: 'Documents & Portfolio', icon: '📎' },
     { id: 'settings', label: 'Settings & Security', icon: '⚙️' },
   ] : [
     { id: 'overview', label: 'Overview', icon: '👤' },
-    { id: 'professional', label: 'Professional Expertise', icon: '💼' },
-    { id: 'financial', label: 'Retirement & Earnings', icon: '💰' },
+    { id: 'professional', label: 'Expertise & Experience', icon: '💼' },
+    { id: 'resume', label: 'Resume & Documents', icon: '📄' },
+    { id: 'financial', label: 'Earnings & Goals', icon: '💰' },
     { id: 'settings', label: 'Settings & Security', icon: '⚙️' },
   ];
 
@@ -113,6 +115,48 @@ const ProfilePage = ({ user, userRole, onBack }) => {
                 <p className="mt-4 small">You are on track to your goal of $50k annual supplementary income.</p>
               </div>
             )}
+          </div>
+        );
+      case 'resume':
+        return (
+          <div className="profile-section-content animate-fade-in">
+            <h3>{userRole === 'Company' ? 'Documents & Portfolio' : 'Resume & Professional Documents'}</h3>
+            <div className="resume-section">
+              <div className="upload-zone mt-4">
+                <div className="flex flex-column items-center p-8 bg-slate rounded-lg border-dashed">
+                  <span style={{ fontSize: '3rem', marginBottom: '1rem' }}>📄</span>
+                  <h4>{userRole === 'Company' ? 'Upload Portfolio / Brochure' : 'Update Your Resume'}</h4>
+                  <p className="small text-secondary mb-4">PDF, DOCX (Max 10MB)</p>
+                  <button className="btn btn-outline">Select File</button>
+                </div>
+              </div>
+
+              <div className="document-list mt-8">
+                <h4 className="mb-4">Uploaded Documents</h4>
+                <div className="doc-item flex justify-between items-center p-4 border rounded">
+                  <div className="flex items-center gap-3">
+                    <span style={{ fontSize: '1.5rem' }}>📄</span>
+                    <div>
+                      <div className="font-bold">{userRole === 'Company' ? 'Registration_Certificate.pdf' : 'Main_Resume_2024.pdf'}</div>
+                      <div className="small text-secondary">Uploaded on April 12, 2024</div>
+                    </div>
+                  </div>
+                  <span className="badge badge-success">Verified</span>
+                </div>
+                {userRole === 'Professional' && (
+                  <div className="doc-item flex justify-between items-center p-4 border rounded mt-3">
+                    <div className="flex items-center gap-3">
+                      <span style={{ fontSize: '1.5rem' }}>📄</span>
+                      <div>
+                        <div className="font-bold">Retirement_Letter.pdf</div>
+                        <div className="small text-secondary">Uploaded on April 12, 2024</div>
+                      </div>
+                    </div>
+                    <span className="badge badge-success">Verified</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         );
       case 'settings':
@@ -480,6 +524,34 @@ const ProfilePage = ({ user, userRole, onBack }) => {
           padding-bottom: 1.5rem;
           border-bottom: 1px solid var(--border-color);
         }
+
+        .doc-item {
+          background-color: #f8fafc;
+          border-color: #e2e8f0;
+          transition: var(--transition);
+        }
+
+        .doc-item:hover {
+          border-color: var(--primary-color);
+        }
+
+        .upload-zone {
+          border: 2px dashed #e2e8f0;
+          border-radius: var(--radius-lg);
+          background-color: #f8fafc;
+          transition: var(--transition);
+        }
+
+        .upload-zone:hover {
+          border-color: var(--primary-color);
+          background-color: #f0f7ff;
+        }
+
+        .bg-slate { background-color: #f8fafc; }
+        .flex-column { flex-direction: column; }
+        .p-8 { padding: 2rem; }
+        .rounded-lg { border-radius: var(--radius-lg); }
+        .border-dashed { border-style: dashed; }
 
         .animate-fade-in {
           animation: fadeInContent 0.3s ease-out;

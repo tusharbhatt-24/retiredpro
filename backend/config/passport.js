@@ -12,17 +12,17 @@ try {
   console.log("Prisma skipping initialization in passport.js until DB URL is added.");
 }
 
-if (!prisma) {
   prisma = {
     user: {
       findUnique: async ({ where }) => {
-        if (where.email) return { id: 'oauth_mock_id', email: where.email, name: 'OAuth User', role: 'professional' };
+        if (where.email) return { id: 'oauth_mock_id', email: where.email, name: 'OAuth User', avatar_url: null, role: 'professional' };
+        if (where.id) return { id: where.id, email: 'mock@example.com', name: 'Verified Expert', avatar_url: null, role: 'professional' };
         return null;
       },
-      create: async ({ data }) => ({ id: 'oauth_mock_id', ...data })
+      create: async ({ data }) => ({ id: 'oauth_mock_id', ...data }),
+      update: async ({ where, data }) => ({ ...where, ...data })
     }
   };
-}
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -57,6 +57,8 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         user = await prisma.user.create({
           data: {
             email,
+            name: profile.displayName,
+            avatar_url: profile.photos && profile.photos[0] ? profile.photos[0].value : null,
             auth_provider: 'google',
             is_email_verified: true,
             role: 'professional'
@@ -88,6 +90,8 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
         user = await prisma.user.create({
           data: {
             email,
+            name: profile.displayName,
+            avatar_url: profile.photos && profile.photos[0] ? profile.photos[0].value : null,
             auth_provider: 'linkedin',
             is_email_verified: true,
             role: 'professional'
