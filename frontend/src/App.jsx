@@ -129,33 +129,57 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
 
             <div className="section-divider mt-8 mb-4">Education & Qualifications</div>
             {editData.qualifications.map((q, idx) => (
-              <div key={idx} className="flex gap-4 mb-4 items-end">
-                <div className="form-group flex-1">
-                  <label className="small font-bold">Degree / Certificate</label>
-                  <input type="text" className="form-control" list="degree-list" value={q.degree} onChange={e => {
-                    const newQuals = [...editData.qualifications];
-                    newQuals[idx].degree = e.target.value;
-                    setEditData({...editData, qualifications: newQuals});
-                  }} placeholder="Select or type degree..." />
-                  <datalist id="degree-list">
-                    {DEGREES.map(d => <option key={d} value={d} />)}
-                  </datalist>
+              <div key={idx} className="qualification-row mb-6 bg-slate p-4 rounded-lg">
+                <div className="flex gap-4 mb-4 items-end">
+                  <div className="form-group flex-1">
+                    <label className="small font-bold">Degree / Certificate</label>
+                    <input type="text" className="form-control" list="degree-list" value={q.degree} onChange={e => {
+                      const newQuals = [...editData.qualifications];
+                      newQuals[idx].degree = e.target.value;
+                      if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_degree = '';
+                      setEditData({...editData, qualifications: newQuals});
+                    }} placeholder="Select or type degree..." />
+                  </div>
+                  <div className="form-group flex-1">
+                    <label className="small font-bold">Institution</label>
+                    <input type="text" className="form-control" list="institute-list" value={q.institute} onChange={e => {
+                      const newQuals = [...editData.qualifications];
+                      newQuals[idx].institute = e.target.value;
+                      if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_institute = '';
+                      setEditData({...editData, qualifications: newQuals});
+                    }} placeholder="Select or type institute..." />
+                  </div>
+                  {editData.qualifications.length > 1 && (
+                    <button className="btn btn-danger-outline btn-sm mb-1" onClick={() => {
+                      setEditData({...editData, qualifications: editData.qualifications.filter((_, i) => i !== idx)});
+                    }}>✕</button>
+                  )}
                 </div>
-                <div className="form-group flex-1">
-                  <label className="small font-bold">Institution</label>
-                  <input type="text" className="form-control" list="institute-list" value={q.institute} onChange={e => {
-                    const newQuals = [...editData.qualifications];
-                    newQuals[idx].institute = e.target.value;
-                    setEditData({...editData, qualifications: newQuals});
-                  }} placeholder="Select or type institute..." />
-                  <datalist id="institute-list">
-                    {TOP_INSTITUTES.map(inst => <option key={inst} value={inst} />)}
-                  </datalist>
-                </div>
-                {editData.qualifications.length > 1 && (
-                  <button className="btn btn-danger-outline btn-sm mb-1" onClick={() => {
-                    setEditData({...editData, qualifications: editData.qualifications.filter((_, i) => i !== idx)});
-                  }}>✕</button>
+
+                {/* Conditional Custom Inputs */}
+                {(q.degree === 'Not Listed / Other' || q.institute === 'Not Listed / Other') && (
+                  <div className="flex gap-4 animate-slide-up">
+                    {q.degree === 'Not Listed / Other' && (
+                      <div className="form-group flex-1">
+                        <label className="tiny-label text-primary">Enter Your Degree Name</label>
+                        <input type="text" className="form-control border-primary" value={q.custom_degree || ''} onChange={e => {
+                          const newQuals = [...editData.qualifications];
+                          newQuals[idx].custom_degree = e.target.value;
+                          setEditData({...editData, qualifications: newQuals});
+                        }} placeholder="e.g. Master of Data Science" />
+                      </div>
+                    )}
+                    {q.institute === 'Not Listed / Other' && (
+                      <div className="form-group flex-1">
+                        <label className="tiny-label text-primary">Enter Your Institute Name</label>
+                        <input type="text" className="form-control border-primary" value={q.custom_institute || ''} onChange={e => {
+                          const newQuals = [...editData.qualifications];
+                          newQuals[idx].custom_institute = e.target.value;
+                          setEditData({...editData, qualifications: newQuals});
+                        }} placeholder="e.g. University of California" />
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -237,23 +261,44 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             </div>
           </div>
           
-          <div className="flex gap-4 mt-8">
-            <button 
-              className="btn btn-primary flex-1 py-4" 
-              onClick={() => {
-                const skillsArray = typeof editData.skills === 'string' 
-                  ? editData.skills.split(',').map(s => s.trim()).filter(s => s !== '')
-                  : editData.skills;
-                onComplete({ ...editData, skills: skillsArray });
-              }}
-              style={{ fontSize: '1.1rem' }}
-            >
-              Correct & Continue to My Profile
-            </button>
-            <button className="btn btn-outline" onClick={onSkip}>Skip & Set Up Later</button>
+            <div className="flex gap-4 mt-8">
+              <button 
+                className="btn btn-primary flex-1 py-4" 
+                onClick={() => {
+                  const skillsArray = typeof editData.skills === 'string' 
+                    ? editData.skills.split(',').map(s => s.trim()).filter(s => s !== '')
+                    : editData.skills;
+                  
+                  // Clean up Not Listed values with their custom values
+                  const finalQuals = editData.qualifications.map(q => ({
+                    degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
+                    institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
+                  }));
+
+                  onComplete({ ...editData, skills: skillsArray, qualifications: finalQuals });
+                }}
+                style={{ fontSize: '1.1rem' }}
+              >
+                Correct & Continue to My Profile
+              </button>
+              <button className="btn btn-outline" onClick={onSkip}>Skip & Set Up Later</button>
+              <datalist id="degree-list">
+              {DEGREES.map(d => <option key={d} value={d} />)}
+            </datalist>
+            <datalist id="institute-list">
+              {TOP_INSTITUTES.map(inst => <option key={inst} value={inst} />)}
+            </datalist>
+            <datalist id="company-list">
+              {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}
+            </datalist>
+            <datalist id="designation-list">
+              {SENIOR_DESIGNATIONS.map(d => <option key={d} value={d} />)}
+            </datalist>
+            <datalist id="industry-list">
+              {INDUSTRIES.map(i => <option key={i} value={i} />)}
+            </datalist>
           </div>
-        </div>
-        <style jsx="true">{`
+          <style jsx="true">{`
           .onboarding-card h2 { color: var(--primary-color); }
           .form-group { margin-bottom: 1.5rem; }
           .form-group label { display: block; margin-bottom: 0.5rem; }

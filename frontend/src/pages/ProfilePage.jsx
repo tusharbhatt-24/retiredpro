@@ -390,22 +390,50 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                         <input type="text" list="degree-list" value={q.degree} onChange={e => {
                           const newQuals = [...tempProfile.qualifications];
                           newQuals[idx].degree = e.target.value;
+                          if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_degree = '';
                           setTempProfile({...tempProfile, qualifications: newQuals});
                         }} placeholder="e.g. B.Tech" />
                         <datalist id="degree-list">
                           {DEGREES.map(d => <option key={d} value={d} />)}
                         </datalist>
+                        {q.degree === 'Not Listed / Other' && (
+                          <input 
+                            type="text" 
+                            className="mt-2 border-primary" 
+                            value={q.custom_degree || ''} 
+                            onChange={e => {
+                              const newQuals = [...tempProfile.qualifications];
+                              newQuals[idx].custom_degree = e.target.value;
+                              setTempProfile({...tempProfile, qualifications: newQuals});
+                            }} 
+                            placeholder="Enter Degree Name"
+                          />
+                        )}
                       </div>
                       <div className="form-group flex-1">
                         <label className="tiny-label">Institute</label>
                         <input type="text" list="institute-list" value={q.institute} onChange={e => {
                           const newQuals = [...tempProfile.qualifications];
                           newQuals[idx].institute = e.target.value;
+                          if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_institute = '';
                           setTempProfile({...tempProfile, qualifications: newQuals});
                         }} placeholder="e.g. IIT Delhi" />
                         <datalist id="institute-list">
                           {TOP_INSTITUTES.map(inst => <option key={inst} value={inst} />)}
                         </datalist>
+                        {q.institute === 'Not Listed / Other' && (
+                          <input 
+                            type="text" 
+                            className="mt-2 border-primary" 
+                            value={q.custom_institute || ''} 
+                            onChange={e => {
+                              const newQuals = [...tempProfile.qualifications];
+                              newQuals[idx].custom_institute = e.target.value;
+                              setTempProfile({...tempProfile, qualifications: newQuals});
+                            }} 
+                            placeholder="Enter Institute Name"
+                          />
+                        )}
                       </div>
                       <button className="btn btn-danger-outline btn-sm" onClick={() => {
                         setTempProfile({...tempProfile, qualifications: tempProfile.qualifications.filter((_, i) => i !== idx)});
@@ -468,7 +496,19 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 <button 
                   className="btn btn-primary flex-1 p-4" 
                   onClick={() => {
-                    onUpdateProfile(tempProfile);
+                    // Clean up data before saving
+                    const finalQuals = tempProfile.qualifications.map(q => ({
+                      degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
+                      institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
+                    }));
+                    
+                    const finalWork = tempProfile.work_history.map(w => ({
+                      ...w,
+                      role: w.role === 'Not Listed / Other' ? w.custom_role : w.role,
+                      company: w.company === 'Not Listed / Other' ? w.custom_company : w.company
+                    }));
+
+                    onUpdateProfile({ ...tempProfile, qualifications: finalQuals, work_history: finalWork });
                     setIsEditing(false);
                   }}
                   style={{ fontSize: '1.1rem', fontWeight: 600 }}
