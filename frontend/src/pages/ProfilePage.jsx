@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 
-const ProfilePage = ({ user, userRole, profileData, onBack }) => {
+const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) => {
   const [activeCategory, setActiveCategory] = useState('overview');
+  const [isEditing, setIsEditing] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   const profile = profileData || {
     name: user.name || 'User',
@@ -145,7 +147,17 @@ const ProfilePage = ({ user, userRole, profileData, onBack }) => {
                   <span style={{ fontSize: '3rem', marginBottom: '1rem' }}>📄</span>
                   <h4>{userRole === 'Company' ? 'Upload Portfolio / Brochure' : 'Update Your Resume'}</h4>
                   <p className="small text-secondary mb-4">PDF, DOCX (Max 10MB)</p>
-                  <button className="btn btn-outline">Select File</button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => {
+                      if (e.target.files[0]) {
+                        alert('Document uploaded successfully: ' + e.target.files[0].name);
+                      }
+                    }}
+                  />
+                  <button className="btn btn-outline" onClick={() => fileInputRef.current.click()}>Select File</button>
                 </div>
               </div>
 
@@ -247,7 +259,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack }) => {
               </div>
             </div>
             <div className="profile-actions">
-              <button className="btn btn-primary">Edit Profile</button>
+              <button className="btn btn-primary" onClick={() => setIsEditing(true)}>Edit Profile</button>
               <button className="btn btn-outline" onClick={onBack}>Back to Home</button>
             </div>
           </div>
@@ -291,6 +303,61 @@ const ProfilePage = ({ user, userRole, profileData, onBack }) => {
             </div>
           </main>
         </div>
+
+        {/* Edit Profile Modal */}
+        {isEditing && (
+          <div className="modal-overlay">
+            <div className="edit-modal animate-slide-up">
+              <div className="flex justify-between items-center mb-6">
+                <h2>Edit Professional Profile</h2>
+                <button className="close-btn" onClick={() => setIsEditing(false)}>✕</button>
+              </div>
+              
+              <div className="edit-form-grid">
+                <div className="form-group">
+                  <label>Full Name</label>
+                  <input type="text" defaultValue={profile.name} id="edit-name" />
+                </div>
+                <div className="form-group">
+                  <label>Email ID (Read-only)</label>
+                  <input type="text" value={user.email} disabled className="disabled-input" />
+                  <span className="small text-secondary">Email cannot be changed for security.</span>
+                </div>
+                <div className="form-group">
+                  <label>Industry</label>
+                  <input type="text" defaultValue={profile.industry} id="edit-industry" />
+                </div>
+                <div className="form-group">
+                  <label>Experience</label>
+                  <input type="text" defaultValue={profile.years_of_experience} id="edit-exp" />
+                </div>
+                <div className="form-group full-width">
+                  <label>Professional Bio</label>
+                  <textarea rows="4" defaultValue={profile.bio} id="edit-bio"></textarea>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-8">
+                <button 
+                  className="btn btn-primary flex-1" 
+                  onClick={() => {
+                    const updated = {
+                      name: document.getElementById('edit-name').value,
+                      industry: document.getElementById('edit-industry').value,
+                      years_of_experience: document.getElementById('edit-exp').value,
+                      bio: document.getElementById('edit-bio').value
+                    };
+                    onUpdateProfile(updated);
+                    setIsEditing(false);
+                  }}
+                >
+                  Save Changes
+                </button>
+                <button className="btn btn-outline" onClick={() => setIsEditing(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <style jsx="true">{`
@@ -607,6 +674,41 @@ const ProfilePage = ({ user, userRole, profileData, onBack }) => {
         .font-bold { font-weight: 700; }
         .small { font-size: 0.85rem; }
         .text-success { color: var(--success-color); }
+
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+        .edit-modal {
+          background: white;
+          width: 90%;
+          max-width: 600px;
+          border-radius: 20px;
+          padding: 2.5rem;
+          box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        .edit-form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+        }
+        .full-width { grid-column: span 2; }
+        .disabled-input { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+        .close-btn:hover { color: #0f172a; }
+
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slide-up 0.3s ease-out; }
       `}</style>
     </div>
   );

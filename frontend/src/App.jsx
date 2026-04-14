@@ -1461,11 +1461,11 @@ function App() {
         ) : userRole === 'Company' ? (
           activeView === 'home' ? <CompanyHome /> : 
           activeView === 'verification' ? <CompanySignup /> :
-          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} />
+          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
         ) : (
           activeView === 'home' ? <ProfessionalHome /> : 
           activeView === 'verification' ? <ProfessionalSignup /> :
-          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} />
+          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
         )}
 
         {/* Footer */}
