@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './index.css';
 import ChatBot from './chatbot/ChatBot';
+import AuthPage from './AuthPage';
 
 function ProfessionalHome() {
   return (
@@ -1018,7 +1019,35 @@ function RoleSelection({ onSelect }) {
 function App() {
   const [activeTab, setActiveTab] = useState('companies');
   const [userRole, setUserRole] = useState(null);
-  const [activeView, setActiveView] = useState('home'); // 'home' or 'verification'
+  const [activeView, setActiveView] = useState('home');
+
+  // ── Auth State ──────────────────────────────────────────────────────────────
+  const [authData, setAuthData] = useState(() => {
+    try {
+      const token = localStorage.getItem('rp_token');
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      // Check expiry only for real JWTs (not mock ones)
+      if (payload.exp && Date.now() / 1000 > payload.exp) {
+        localStorage.removeItem('rp_token');
+        return null;
+      }
+      return { token, user: payload };
+    } catch {
+      return null;
+    }
+  });
+
+  const handleAuthSuccess = (data) => {
+    setAuthData(data);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('rp_token');
+    setAuthData(null);
+    setUserRole(null);
+    setActiveView('home');
+  };
 
   const handleRoleSelect = (role) => {
     setUserRole(role);
@@ -1029,9 +1058,18 @@ function App() {
     setActiveView('home');
   };
 
+  // ── Gate: Show Auth Page if not logged in ───────────────────────────────────
+  if (!authData) {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  // ── Gate: Show Role Selection after login ───────────────────────────────────
   if (!userRole) {
     return <RoleSelection onSelect={handleRoleSelect} />;
   }
+
+  const { user } = authData;
+  const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
 
   return (
     <div className="app">
@@ -1040,9 +1078,9 @@ function App() {
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div style={{
-              width: '40px', 
-              height: '40px', 
-              borderRadius: '50%', 
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
               backgroundColor: 'var(--secondary-color)',
               color: 'white',
               display: 'flex',
@@ -1060,9 +1098,9 @@ function App() {
               <span style={{ fontSize: '0.7rem', color: 'var(--secondary-color)', fontWeight: 'bold', textTransform: 'uppercase' }}>
                 {userRole} Mode
               </span>
-              <a 
-                href="#" 
-                onClick={(e) => { e.preventDefault(); handleResetRole(); }} 
+              <a
+                href="#"
+                onClick={(e) => { e.preventDefault(); handleResetRole(); }}
                 style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textDecoration: 'underline' }}
               >
                 Switch to {userRole === 'Company' ? 'Professional' : 'Company'}
@@ -1081,6 +1119,27 @@ function App() {
                 <button className="btn btn-primary">My Profile</button>
               </>
             )}
+
+            {/* User avatar + logout */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="nav-user-avatar" title={user.name}>
+                {user.avatar
+                  ? <img src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
+                  : initials
+                }
+              </div>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px',
+                  padding: '0.3rem 0.7rem', fontSize: '0.72rem', cursor: 'pointer',
+                  color: 'var(--text-secondary)', fontWeight: '600'
+                }}
+                title="Logout"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -1111,4 +1170,5 @@ function App() {
 }
 
 export default App;
+
 
