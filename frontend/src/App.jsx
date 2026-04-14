@@ -33,8 +33,9 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
           setIsReviewing(true);
           setEditData({
             name: user.name || 'Your Name',
-            age: 55,
+            gender: 'Male',
             dob: '1969-01-01',
+            mobile: '+91 98765 43210',
             industry: 'Management & Operations',
             years_of_experience: '25+ Years',
             expertise: 'Leadership, Strategic Planning, Financial Analysis',
@@ -42,7 +43,8 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             bio: 'Experienced professional with a proven track record of success in leading large teams and managing complex projects.',
             location: 'Mumbai, India',
             ex_company: 'Current/Previous Global Corp',
-            ex_designation: 'Senior Executive'
+            ex_designation: 'Senior Executive',
+            qualifications: 'MBA in Finance (IIM Bangalore), B.Tech in Mechanical (IIT Delhi)'
           });
         }, 800);
       }
@@ -67,12 +69,43 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
 
             <div className="flex gap-4">
               <div className="form-group flex-1">
-                <label className="small font-bold text-primary">Years of Experience</label>
-                <input type="text" className="form-control" value={editData.years_of_experience} onChange={e => setEditData({...editData, years_of_experience: e.target.value})} placeholder="e.g. 25+ Years" />
+                <label className="small font-bold text-primary">Gender</label>
+                <select className="form-control" value={editData.gender} onChange={e => setEditData({...editData, gender: e.target.value})}>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
               <div className="form-group flex-1">
+                <label className="small font-bold text-primary">Mobile No.</label>
+                <input type="text" className="form-control" value={editData.mobile} onChange={e => setEditData({...editData, mobile: e.target.value})} />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="form-group flex-1">
+                <label className="small font-bold text-primary">Date of Birth</label>
+                <input type="date" className="form-control" value={editData.dob} onChange={e => setEditData({...editData, dob: e.target.value})} />
+              </div>
+              <div className="form-group flex-1">
+                <label className="small font-bold text-primary">Years of Experience</label>
+                <input type="text" className="form-control" value={editData.years_of_experience} onChange={e => setEditData({...editData, years_of_experience: e.target.value})} />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="small font-bold text-primary">Academic Qualifications</label>
+              <input type="text" className="form-control" value={editData.qualifications} onChange={e => setEditData({...editData, qualifications: e.target.value})} placeholder="e.g. MBA from IIM..." />
+            </div>
+
+            <div className="flex gap-4">
+              <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Industry Focus</label>
-                <input type="text" className="form-control" value={editData.industry} onChange={e => setEditData({...editData, industry: e.target.value})} placeholder="e.g. Manufacturing" />
+                <input type="text" className="form-control" value={editData.industry} onChange={e => setEditData({...editData, industry: e.target.value})} />
+              </div>
+              <div className="form-group flex-1">
+                <label className="small font-bold text-primary">Location</label>
+                <input type="text" className="form-control" value={editData.location} onChange={e => setEditData({...editData, location: e.target.value})} />
               </div>
             </div>
 

@@ -57,8 +57,16 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               {userRole === 'Professional' && (
                 <>
                   <div className="info-item">
-                    <label>Age & DOB</label>
-                    <div className="value">{profile.age} Yrs ({profile.dob})</div>
+                    <label>Mobile Number</label>
+                    <div className="value">{profile.mobile || '+91 00000 00000'}</div>
+                  </div>
+                  <div className="info-item">
+                    <label>Gender</label>
+                    <div className="value">{profile.gender || 'Not Specified'}</div>
+                  </div>
+                  <div className="info-item">
+                    <label>Date of Birth</label>
+                    <div className="value">{profile.dob}</div>
                   </div>
                   <div className="info-item">
                     <label>Current Location</label>
@@ -98,8 +106,16 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               </div>
             </div>
 
-            <div className="category-group mt-6">
-              <h4 className="category-title">{userRole === 'Company' ? 'Top Skills We Hire' : 'Skills & Certifications'}</h4>
+            <div className="category-group mt-8">
+              <h4 className="category-title">Education & Qualifications</h4>
+              <div className="qualification-card p-4 border rounded-lg bg-slate">
+                <p className="font-bold text-primary">{profile.qualifications || 'Degree Information not provided'}</p>
+                <p className="small text-secondary">Verified Academic Background</p>
+              </div>
+            </div>
+
+            <div className="category-group mt-8">
+              <h4 className="category-title">{userRole === 'Company' ? 'Top Skills We Hire' : 'Technical Skills & Expertise'}</h4>
               <div className="flex gap-2 flex-wrap mt-2">
                 {profile.skills.map(skill => (
                   <span key={skill} className="job-tag" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>{skill}</span>
@@ -331,6 +347,14 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                   <label>Experience</label>
                   <input type="text" defaultValue={profile.years_of_experience} id="edit-exp" />
                 </div>
+                <div className="form-group">
+                  <label>Qualifications</label>
+                  <input type="text" defaultValue={profile.qualifications} id="edit-qual" />
+                </div>
+                <div className="form-group">
+                  <label>Mobile No.</label>
+                  <input type="text" defaultValue={profile.mobile} id="edit-mobile" />
+                </div>
                 <div className="form-group full-width">
                   <label>Professional Bio</label>
                   <textarea rows="4" defaultValue={profile.bio} id="edit-bio"></textarea>
@@ -345,6 +369,8 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                       name: document.getElementById('edit-name').value,
                       industry: document.getElementById('edit-industry').value,
                       years_of_experience: document.getElementById('edit-exp').value,
+                      qualifications: document.getElementById('edit-qual').value,
+                      mobile: document.getElementById('edit-mobile').value,
                       bio: document.getElementById('edit-bio').value
                     };
                     onUpdateProfile(updated);
