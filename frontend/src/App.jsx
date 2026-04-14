@@ -1287,6 +1287,19 @@ function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
+  // Expose global function for ChatBot to help users fill profile
+  useEffect(() => {
+    window.updateRetiredProProfile = (data) => {
+      setParsedProfile(prev => {
+        const newData = { ...prev, ...data };
+        localStorage.setItem('rp_parsed_profile', JSON.stringify(newData));
+        return newData;
+      });
+      // Also trigger a notification or view update
+      if (activeView !== 'profile') setActiveView('profile');
+    };
+  }, [activeView]);
+
   // ── Auth State ──────────────────────────────────────────────────────────────
   const [authData, setAuthData] = useState(() => {
     try {
@@ -1462,7 +1475,11 @@ function App() {
 
         {/* AI Chatbot Widget */}
         <ChatBot
-          systemPrompt="You are the official support assistant for RetiredPro — a platform that connects retired professionals with companies seeking expert guidance. Help users navigate their verification steps, understand platform features, and resolve common issues. Always be brief, professional, and to the point."
+          systemPrompt={`You are the lead assistant for RetiredPro. You can help users set up their profiles. 
+          If a user needs help filling their details based on their resume or conversation, you can use the function: 
+          window.updateRetiredProProfile({ name, industry, years_of_experience, bio, skills, location, ex_designation }) 
+          to help them. Only use this when they explicitly ask or when you've helped them refine their details.
+          BE VERY CAREFUL: Only output a code block with 'execute' when you are sure you want to update the UI.`}
           botName="RetiredPro Assistant"
           primaryColor="#4f46e5"
           puterModel="claude-sonnet-4-6"
