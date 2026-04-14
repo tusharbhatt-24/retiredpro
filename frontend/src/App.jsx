@@ -6,6 +6,8 @@ import './index.css';
 function OnboardingScreen({ user, onComplete, onSkip }) {
   const [isParsing, setIsParsing] = useState(false);
   const [parsingProgress, setParsingProgress] = useState(0);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [editData, setEditData] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleResumeClick = () => {
@@ -27,23 +29,116 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
       if (progress >= 100) {
         clearInterval(interval);
         setTimeout(() => {
-          onComplete({
-            name: user.name || 'Verified Expert',
-            age: 58,
-            dob: '1966-05-12',
-            industry: 'Global Supply Chain & Logistics',
-            years_of_experience: '32 Years of Expertise',
-            expertise: 'Strategic Global Logistics, ERP Transformation, and Lean Six Sigma Implementation.',
-            skills: ['Global Supply Chain', 'Customs Compliance', 'SAP S/4HANA', 'Strategic Leadership', 'Process Automation', 'Risk Mitigation'],
-            bio: 'DISTINGUISHED LOGISTICS LEADER: Over 3 decades of experience managing multi-billion dollar logistics operations for top-tier aviation and manufacturing firms. Expert in driving operational efficiency through technology integration.',
-            location: 'Mumbai, MH, India',
-            ex_company: 'Aerospace Logistics International',
-            ex_designation: 'Chief Operations Officer (COO)'
+          setIsParsing(false);
+          setIsReviewing(true);
+          setEditData({
+            name: user.name || 'Your Name',
+            age: 55,
+            dob: '1969-01-01',
+            industry: 'Management & Operations',
+            years_of_experience: '25+ Years',
+            expertise: 'Leadership, Strategic Planning, Financial Analysis',
+            skills: 'Operations, Budgeting, Team Building',
+            bio: 'Experienced professional with a proven track record of success in leading large teams and managing complex projects.',
+            location: 'Mumbai, India',
+            ex_company: 'Current/Previous Global Corp',
+            ex_designation: 'Senior Executive'
           });
         }, 800);
       }
-    }, 200);
+    }, 150);
   };
+
+  if (isReviewing) {
+    return (
+      <div className="onboarding-container animate-fade-in">
+        <div className="onboarding-card" style={{ textAlign: 'left', maxWidth: '700px' }}>
+          <div className="flex justify-between items-center mb-4">
+            <h2 style={{ margin: 0 }}>Confirm Your Details</h2>
+            <span className="badge badge-success">Extraction Complete ⚡</span>
+          </div>
+          <p className="text-secondary mb-8">We've pre-filled your profile using your resume. **Does this look correct?** You can edit any field below before finalizing.</p>
+          
+          <div className="review-grid">
+            <div className="form-group">
+              <label className="small font-bold text-primary">Full Name</label>
+              <input type="text" className="form-control" value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="e.g. John Doe" />
+            </div>
+
+            <div className="flex gap-4">
+              <div className="form-group flex-1">
+                <label className="small font-bold text-primary">Years of Experience</label>
+                <input type="text" className="form-control" value={editData.years_of_experience} onChange={e => setEditData({...editData, years_of_experience: e.target.value})} placeholder="e.g. 25+ Years" />
+              </div>
+              <div className="form-group flex-1">
+                <label className="small font-bold text-primary">Industry Focus</label>
+                <input type="text" className="form-control" value={editData.industry} onChange={e => setEditData({...editData, industry: e.target.value})} placeholder="e.g. Manufacturing" />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="small font-bold text-primary">Target Designation / Expertise</label>
+              <input type="text" className="form-control" value={editData.ex_designation} onChange={e => setEditData({...editData, ex_designation: e.target.value})} placeholder="e.g. Senior Logistics Advisor" />
+            </div>
+
+            <div className="form-group">
+              <label className="small font-bold text-primary">Professional Summary</label>
+              <textarea className="form-control" rows="4" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} placeholder="A brief summary of your career..." />
+            </div>
+
+            <div className="form-group">
+              <label className="small font-bold text-primary">Key Skills (comma separated)</label>
+              <input type="text" className="form-control" value={typeof editData.skills === 'string' ? editData.skills : editData.skills.join(', ')} onChange={e => setEditData({...editData, skills: e.target.value})} placeholder="e.g. Leadership, Strategy, Operations" />
+            </div>
+          </div>
+          
+          <div className="flex gap-4 mt-8">
+            <button 
+              className="btn btn-primary flex-1 py-4" 
+              onClick={() => {
+                const skillsArray = typeof editData.skills === 'string' 
+                  ? editData.skills.split(',').map(s => s.trim()).filter(s => s !== '')
+                  : editData.skills;
+                onComplete({ ...editData, skills: skillsArray });
+              }}
+              style={{ fontSize: '1.1rem' }}
+            >
+              Correct & Continue to My Profile
+            </button>
+            <button className="btn btn-outline" onClick={onSkip}>Skip & Set Up Later</button>
+          </div>
+        </div>
+        <style jsx="true">{`
+          .onboarding-card h2 { color: var(--primary-color); }
+          .form-group { margin-bottom: 1.5rem; }
+          .form-group label { display: block; margin-bottom: 0.5rem; }
+          .form-control {
+            width: 100%;
+            padding: 0.85rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+          }
+          .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+          }
+          .review-grid {
+            display: grid;
+            gap: 0.5rem;
+          }
+          .text-primary { color: var(--primary-color); }
+          .mb-8 { margin-bottom: 2rem; }
+          .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="onboarding-container animate-fade-in">
@@ -1187,7 +1282,10 @@ function App() {
   const [activeTab, setActiveTab] = useState('companies');
   const [userRole, setUserRole] = useState(null);
   const [activeView, setActiveView] = useState('home');
-  const [parsedProfile, setParsedProfile] = useState(null);
+  const [parsedProfile, setParsedProfile] = useState(() => {
+    const saved = localStorage.getItem('rp_parsed_profile');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   // ── Auth State ──────────────────────────────────────────────────────────────
   const [authData, setAuthData] = useState(() => {
@@ -1342,6 +1440,7 @@ function App() {
             user={authData.user} 
             onComplete={(data) => {
               setParsedProfile(data);
+              localStorage.setItem('rp_parsed_profile', JSON.stringify(data));
               setActiveView('profile');
             }}
             onSkip={() => setActiveView('home')}
