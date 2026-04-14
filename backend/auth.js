@@ -18,10 +18,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(
     new GoogleStrategy(
       {
+
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${BACKEND_URL}/api/auth/google/callback`,
+        callbackURL: `${BACKEND_URL}/auth/google/callback`,   // ← add this back
       },
+
       (accessToken, refreshToken, profile, done) => {
         const user = {
           id: profile.id,
@@ -122,7 +124,7 @@ router.get('/verify', (req, res) => {
 
 // ─── Logout ───────────────────────────────────────────────────────────────────
 router.post('/logout', (req, res) => {
-  req.logout?.(() => {});
+  req.logout?.(() => { });
   res.json({ message: 'Logged out successfully' });
 });
 

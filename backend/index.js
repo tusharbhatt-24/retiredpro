@@ -1,13 +1,17 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const { PrismaClient } = require('@prisma/client');
-require('dotenv').config();
 
-const { router: authRouter, passport } = require('./auth');
+const passport = require('./config/passport');
+const authRoutes = require('./routes/auth');
 
 const app = express();
-const port = process.env.PORT || 5050;
+const port = process.env.PORT || 5000;
+
+console.log('Client ID loaded:', process.env.GOOGLE_CLIENT_ID);
+console.log('GOOGLE_CLIENT_SECRET exists:', !!process.env.GOOGLE_CLIENT_SECRET);
 
 let prisma = null;
 try {
@@ -45,8 +49,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'active', message: 'RetirePro API is running smoothly.' });
 });
 
-// Auth routes (Google + LinkedIn OAuth)
-app.use('/api/auth', authRouter);
+// Auth routes (New OAuth)
+app.use('/auth', authRoutes);
 
 // User Registration Mockup Endpoint
 app.post('/api/auth/register', async (req, res) => {
@@ -128,6 +132,6 @@ app.post('/api/professionals/verify', async (req, res) => {
 app.listen(port, () => {
   console.log(`Backend server listening on http://localhost:${port}`);
   console.log(`OAuth Endpoints:`);
-  console.log(`  Google:   http://localhost:${port}/api/auth/google`);
-  console.log(`  LinkedIn: http://localhost:${port}/api/auth/linkedin`);
+  console.log(`  Google:   http://localhost:${port}/auth/google`);
+  console.log(`  LinkedIn: http://localhost:${port}/auth/linkedin`);
 });

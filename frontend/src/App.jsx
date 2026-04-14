@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './index.css';
 import ChatBot from './chatbot/ChatBot';
 import AuthPage from './AuthPage';
+import AuthSuccess from './pages/AuthSuccess';
 
 function ProfessionalHome() {
   return (
@@ -1017,6 +1019,8 @@ function RoleSelection({ onSelect }) {
 }
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('companies');
   const [userRole, setUserRole] = useState(null);
   const [activeView, setActiveView] = useState('home');
@@ -1024,11 +1028,12 @@ function App() {
   // ── Auth State ──────────────────────────────────────────────────────────────
   const [authData, setAuthData] = useState(() => {
     try {
-      const token = localStorage.getItem('rp_token');
+      // Check both 'token' (requested by user) and 'rp_token' (legacy)
+      const token = localStorage.getItem('token') || localStorage.getItem('rp_token');
       if (!token) return null;
       const payload = JSON.parse(atob(token.split('.')[1]));
-      // Check expiry only for real JWTs (not mock ones)
       if (payload.exp && Date.now() / 1000 > payload.exp) {
+        localStorage.removeItem('token');
         localStorage.removeItem('rp_token');
         return null;
       }
@@ -1038,15 +1043,30 @@ function App() {
     }
   });
 
+  // Keep state in sync with localStorage changes (e.g. after AuthSuccess)
+  useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('rp_token');
+    if (token && !authData) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setAuthData({ token, user: payload });
+      } catch (e) {
+        console.error("Token sync error", e);
+      }
+    }
+  }, [location.pathname, authData]);
+
   const handleAuthSuccess = (data) => {
     setAuthData(data);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('rp_token');
     setAuthData(null);
     setUserRole(null);
     setActiveView('home');
+    navigate('/');
   };
 
   const handleRoleSelect = (role) => {
@@ -1058,117 +1078,124 @@ function App() {
     setActiveView('home');
   };
 
-  // ── Gate: Show Auth Page if not logged in ───────────────────────────────────
-  if (!authData) {
-    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
-  }
+  // ── Protected View Selection ───────────────────────────────────────────────
+  const renderMainContent = () => {
+    if (!authData) {
+      return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+    }
 
-  // ── Gate: Show Role Selection after login ───────────────────────────────────
-  if (!userRole) {
-    return <RoleSelection onSelect={handleRoleSelect} />;
-  }
+    if (!userRole) {
+      return <RoleSelection onSelect={handleRoleSelect} />;
+    }
 
-  const { user } = authData;
-  const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
+    const { user } = authData;
+    const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
+
+    return (
+      <div className="app">
+        {/* Navigation */}
+        <nav className="navbar">
+          <div className="container flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--secondary-color)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '1.2rem'
+              }}>RP</div>
+              <div onClick={handleResetRole} style={{ cursor: 'pointer' }}>
+                <h2 style={{ marginBottom: 0, color: 'var(--primary-color)' }}>RetirePro</h2>
+              </div>
+            </div>
+            <div className="nav-links flex gap-6 items-center">
+              <div className="flex flex-col items-end">
+                <span style={{ fontSize: '0.7rem', color: 'var(--secondary-color)', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  {userRole} Mode
+                </span>
+                <a
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); handleResetRole(); }}
+                  style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textDecoration: 'underline' }}
+                >
+                  Switch to {userRole === 'Company' ? 'Professional' : 'Company'}
+                </a>
+              </div>
+              {userRole === 'Company' ? (
+                <>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Home</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Account</a>
+                  <button className="btn btn-primary">Our Talent</button>
+                </>
+              ) : (
+                <>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Find Jobs</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Expert Status</a>
+                  <button className="btn btn-primary">My Profile</button>
+                </>
+              )}
+
+              {/* User avatar + logout */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="nav-user-avatar" title={user.name || user.email}>
+                  {user.avatar
+                    ? <img src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
+                    : initials
+                  }
+                </div>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px',
+                    padding: '0.3rem 0.7rem', fontSize: '0.72rem', cursor: 'pointer',
+                    color: 'var(--text-secondary)', fontWeight: '600'
+                  }}
+                  title="Logout"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Conditional Rendering for Both Roles */}
+        {userRole === 'Company' ? (
+          activeView === 'home' ? <CompanyHome /> : <CompanySignup />
+        ) : (
+          activeView === 'home' ? <ProfessionalHome /> : <ProfessionalSignup />
+        )}
+
+        {/* Footer */}
+        <footer style={{ backgroundColor: 'var(--text-primary)', color: 'white', padding: '3rem 0', textAlign: 'center' }}>
+          <p>&copy; 2026 RetirePro Inc. All rights reserved.</p>
+        </footer>
+
+        {/* AI Chatbot Widget */}
+        <ChatBot
+          systemPrompt="You are the official support assistant for RetiredPro — a platform that connects retired professionals with companies seeking expert guidance. Help users navigate their verification steps, understand platform features, and resolve common issues. Always be brief, professional, and to the point."
+          botName="RetiredPro Assistant"
+          primaryColor="#4f46e5"
+          puterModel="claude-sonnet-4-6"
+          requireConfirmation={false}
+          codeContext=""
+        />
+      </div>
+    );
+  };
 
   return (
-    <div className="app">
-      {/* Navigation */}
-      <nav className="navbar">
-        <div className="container flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--secondary-color)',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '1.2rem'
-            }}>RP</div>
-            <div onClick={handleResetRole} style={{ cursor: 'pointer' }}>
-              <h2 style={{ marginBottom: 0, color: 'var(--primary-color)' }}>RetirePro</h2>
-            </div>
-          </div>
-          <div className="nav-links flex gap-6 items-center">
-            <div className="flex flex-col items-end">
-              <span style={{ fontSize: '0.7rem', color: 'var(--secondary-color)', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                {userRole} Mode
-              </span>
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); handleResetRole(); }}
-                style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textDecoration: 'underline' }}
-              >
-                Switch to {userRole === 'Company' ? 'Professional' : 'Company'}
-              </a>
-            </div>
-            {userRole === 'Company' ? (
-              <>
-                <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Home</a>
-                <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Account</a>
-                <button className="btn btn-primary">Our Talent</button>
-              </>
-            ) : (
-              <>
-                <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Find Jobs</a>
-                <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Expert Status</a>
-                <button className="btn btn-primary">My Profile</button>
-              </>
-            )}
-
-            {/* User avatar + logout */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div className="nav-user-avatar" title={user.name}>
-                {user.avatar
-                  ? <img src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
-                  : initials
-                }
-              </div>
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px',
-                  padding: '0.3rem 0.7rem', fontSize: '0.72rem', cursor: 'pointer',
-                  color: 'var(--text-secondary)', fontWeight: '600'
-                }}
-                title="Logout"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Conditional Rendering for Both Roles */}
-      {userRole === 'Company' ? (
-        activeView === 'home' ? <CompanyHome /> : <CompanySignup />
-      ) : (
-        activeView === 'home' ? <ProfessionalHome /> : <ProfessionalSignup />
-      )}
-
-      {/* Footer */}
-      <footer style={{ backgroundColor: 'var(--text-primary)', color: 'white', padding: '3rem 0', textAlign: 'center' }}>
-        <p>&copy; 2026 RetirePro Inc. All rights reserved.</p>
-      </footer>
-
-      {/* AI Chatbot Widget */}
-      <ChatBot
-        systemPrompt="You are the official support assistant for RetiredPro — a platform that connects retired professionals with companies seeking expert guidance. Help users navigate their verification steps, understand platform features, and resolve common issues. Always be brief, professional, and to the point."
-        botName="RetiredPro Assistant"
-        primaryColor="#4f46e5"
-        puterModel="claude-sonnet-4-6"
-        requireConfirmation={false}
-        codeContext=""
-      />
-    </div>
+    <Routes>
+      <Route path="/auth-success" element={<AuthSuccess />} />
+      <Route path="*" element={renderMainContent()} />
+    </Routes>
   );
 }
 
 export default App;
-
 

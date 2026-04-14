@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 :root {
   --primary-color: #0d47a1; /* Deep rich blue */
   --primary-hover: #1565c0;
@@ -857,7 +858,7 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
    AUTH PAGE
 ═══════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 
 .auth-page {
   min-height: 100vh;
