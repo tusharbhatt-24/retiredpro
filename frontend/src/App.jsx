@@ -303,7 +303,9 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 Correct & Continue to My Profile
               </button>
               <button className="btn btn-outline" onClick={onSkip}>Skip & Set Up Later</button>
-              <datalist id="university-list">
+            </div>
+
+            <datalist id="university-list">
               {UNIVERSITIES.map(u => <option key={u} value={u} />)}
             </datalist>
             <datalist id="degree-list">
