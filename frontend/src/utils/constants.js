@@ -23,36 +23,57 @@ export const INDUSTRIES = [
   "Hospitality & Tourism",
   "Legal Services",
   "Agriculture & Food Tech",
-  "Telecommunications"
+  "Telecommunications",
+  "Not Listed / Other"
 ];
 
 export const TOP_INSTITUTES = [
+  // Top Indian & Global
   "Indian Institute of Science (IISc), Bangalore",
-  "IIT Bombay",
-  "IIT Delhi",
-  "IIT Madras",
-  "IIT Kanpur",
-  "IIT Kharagpur",
-  "IIT Roorkee",
-  "IIM Ahmedabad",
-  "IIM Bangalore",
-  "IIM Calcutta",
-  "IIM Lucknow",
-  "Massachusetts Institute of Technology (MIT)",
-  "Stanford University",
-  "Harvard University",
-  "University of Oxford",
-  "University of Cambridge",
-  "National University of Singapore (NUS)",
-  "ISB (Indian School of Business)",
-  "XLRI - Xavier School of Management",
+  "IIT Bombay", "IIT Delhi", "IIT Madras", "IIT Kanpur", "IIT Kharagpur",
+  "IIM Ahmedabad", "IIM Bangalore", "IIM Calcutta",
+  "Massachusetts Institute of Technology (MIT)", "Stanford University", "Harvard University",
+  "University of Oxford", "University of Cambridge", "National University of Singapore (NUS)",
+  
+  // AKTU / Uttar Pradesh Focus
+  "Dr. A.P.J. Abdul Kalam Technical University (AKTU)",
+  "Institute of Engineering and Technology (IET), Lucknow",
+  "Harcourt Butler Technical University (HBTU), Kanpur",
+  "Kamla Nehru Institute of Technology (KNIT), Sultanpur",
+  "Madan Mohan Malaviya University of Technology (MMMUT), Gorakhpur",
+  "GL Bajaj Institute of Technology and Management, Greater Noida",
+  "KCC Institute of Technology & Management (KCCITM), Greater Noida",
+  "Ajay Kumar Garg Engineering College (AKGEC), Ghaziabad",
+  "JSS Academy of Technical Education (JSSATE), Noida",
+  "ABES Engineering College, Ghaziabad",
+  "Galgotias College of Engineering and Technology, Greater Noida",
+  "KIET Group of Institutions, Ghaziabad",
+  "Pranveer Singh Institute of Technology (PSIT), Kanpur",
+  
+  // IPU / Delhi Focus
+  "Guru Gobind Singh Indraprastha University (GGSIPU)",
+  "University School of Information, Communication and Technology (USICT)",
+  "Maharaja Agrasen Institute of Technology (MAIT), Delhi",
+  "Maharaja Surajmal Institute of Technology (MSIT), Delhi",
+  "Bhagwan Parshuram Institute of Technology (BPIT), Delhi",
+  "Bharati Vidyapeeth's College of Engineering (BVCOE), Delhi",
+  "Guru Tegh Bahadur Institute of Technology (GTBIT), Delhi",
+  "Dr. Akhilesh Das Gupta Institute of Technology & Management (ADGITM)",
+  "Vivekananda Institute of Professional Studies (VIPS), Delhi",
+  
+  // Other Leading Institutes
+  "Delhi Technological University (DTU)",
+  "Netaji Subhas University of Technology (NSUT)",
   "BITS Pilani",
-  "University of Delhi",
-  "Jawaharlal Nehru University (JNU)",
   "Vellore Institute of Technology (VIT)",
-  "London School of Economics (LSE)",
-  "INSEAD",
-  "Wharton School of the University of Pennsylvania"
+  "BITS Hyderabad / Goa",
+  "Manipal Academy of Higher Education",
+  "Amity University",
+  "Shiv Nadar University",
+  "SRM Institute of Science and Technology",
+  "Bennett University, Greater Noida",
+  "Thapar Institute of Engineering and Technology",
+  "Not Listed / Other"
 ];
 
 export const SENIOR_DESIGNATIONS = [
@@ -76,7 +97,8 @@ export const SENIOR_DESIGNATIONS = [
   "Senior Consultant",
   "Advisor / Board Member",
   "Principal Architect",
-  "Country Manager"
+  "Country Manager",
+  "Not Listed / Other"
 ];
 
 export const MAJOR_COMPANIES = [
@@ -102,9 +124,11 @@ export const MAJOR_COMPANIES = [
   "Accenture",
   "Deloitte",
   "McKinsey & Company",
+  "The Boston Consulting Group (BCG)",
   "Coca-Cola",
   "PepsiCo",
-  "Unilever"
+  "Unilever",
+  "Not Listed / Other"
 ];
 
 export const DEGREES = [
@@ -123,5 +147,8 @@ export const DEGREES = [
   "Post Graduate Diploma",
   "Exec-MBA",
   "LL.M (Master of Laws)",
-  "LL.B (Bachelor of Laws)"
+  "LL.B (Bachelor of Laws)",
+  "Doctor of Medicine (MD)",
+  "Bachelor of Medicine, Bachelor of Surgery (MBBS)",
+  "Not Listed / Other"
 ];
