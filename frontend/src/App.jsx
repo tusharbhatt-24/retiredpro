@@ -1,3 +1,8 @@
+import { useState, useRef, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import './index.css';
+import ChatBot from './chatbot/ChatBot';
+import AuthPage from './AuthPage';
 import AuthSuccess from './pages/AuthSuccess';
 import ProfilePage from './pages/ProfilePage';
 import { INDUSTRIES, UNIVERSITIES, AFFILIATED_COLLEGES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from './utils/constants';
