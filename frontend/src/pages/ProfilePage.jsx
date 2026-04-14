@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { INDUSTRIES, TOP_INSTITUTES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from '../utils/constants';
+import { INDUSTRIES, UNIVERSITIES, AFFILIATED_COLLEGES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from '../utils/constants';
 
 const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) => {
   const [activeCategory, setActiveCategory] = useState('overview');
@@ -125,7 +125,8 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 {(profile.qualifications || []).map((qual, idx) => (
                   <div key={idx} className="qualification-card p-4 border rounded-lg bg-slate">
                     <p className="font-bold text-primary" style={{ marginBottom: '0.25rem' }}>{qual.degree}</p>
-                    <p className="small text-secondary">{qual.institute}</p>
+                    <p className="small text-secondary" style={{ marginBottom: '0.1rem' }}>{qual.institute}</p>
+                    {qual.university && <p className="tiny-label" style={{ color: 'var(--text-secondary)' }}>{qual.university}</p>}
                   </div>
                 ))}
               </div>
@@ -384,60 +385,72 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({...tempProfile, qualifications: [...tempProfile.qualifications, {degree: '', institute: ''}]})}>+ Add</button>
                   </div>
                   {tempProfile.qualifications.map((q, idx) => (
-                    <div key={idx} className="list-edit-item flex gap-4 mb-3 items-end p-3 bg-slate rounded-lg">
-                      <div className="form-group flex-1">
-                        <label className="tiny-label">Degree</label>
-                        <input type="text" list="degree-list" value={q.degree} onChange={e => {
-                          const newQuals = [...tempProfile.qualifications];
-                          newQuals[idx].degree = e.target.value;
-                          if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_degree = '';
-                          setTempProfile({...tempProfile, qualifications: newQuals});
-                        }} placeholder="e.g. B.Tech" />
-                        <datalist id="degree-list">
-                          {DEGREES.map(d => <option key={d} value={d} />)}
-                        </datalist>
-                        {q.degree === 'Not Listed / Other' && (
-                          <input 
-                            type="text" 
-                            className="mt-2 border-primary" 
-                            value={q.custom_degree || ''} 
-                            onChange={e => {
+                    <div key={idx} className="list-edit-item bg-slate rounded-lg mb-4 p-4">
+                      <div className="grid grid-cols-3 gap-3 items-end mb-3">
+                        <div className="form-group">
+                          <label className="tiny-label">1. Degree</label>
+                          <input type="text" list="degree-list" value={q.degree} onChange={e => {
+                            const newQuals = [...tempProfile.qualifications];
+                            newQuals[idx].degree = e.target.value;
+                            if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_degree = '';
+                            setTempProfile({...tempProfile, qualifications: newQuals});
+                          }} placeholder="e.g. B.Tech" />
+                        </div>
+                        <div className="form-group">
+                          <label className="tiny-label">2. University</label>
+                          <input type="text" list="university-list" value={q.university || ''} onChange={e => {
+                            const newQuals = [...tempProfile.qualifications];
+                            newQuals[idx].university = e.target.value;
+                            if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_university = '';
+                            newQuals[idx].institute = '';
+                            setTempProfile({...tempProfile, qualifications: newQuals});
+                          }} />
+                        </div>
+                        <div className="form-group">
+                          <div className="flex justify-between items-center">
+                            <label className="tiny-label">3. College</label>
+                            <button className="btn btn-danger-outline btn-xs" style={{ background: 'none', border: 'none', padding: 0 }} onClick={() => {
+                              setTempProfile({...tempProfile, qualifications: tempProfile.qualifications.filter((_, i) => i !== idx)});
+                            }}>✕</button>
+                          </div>
+                          <input type="text" list={`college-list-modal-${idx}`} value={q.institute} onChange={e => {
+                            const newQuals = [...tempProfile.qualifications];
+                            newQuals[idx].institute = e.target.value;
+                            if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_institute = '';
+                            setTempProfile({...tempProfile, qualifications: newQuals});
+                          }} />
+                          <datalist id={`college-list-modal-${idx}`}>
+                            {(AFFILIATED_COLLEGES[q.university] || []).map(c => <option key={c} value={c} />)}
+                          </datalist>
+                        </div>
+                      </div>
+
+                      {/* Custom Fields for "Other" selections */}
+                      {(q.degree === 'Not Listed / Other' || q.university === 'Not Listed / Other' || q.institute === 'Not Listed / Other') && (
+                        <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-dashed">
+                          {q.degree === 'Not Listed / Other' && (
+                            <input type="text" className="text-xs" value={q.custom_degree || ''} placeholder="Degree Name" onChange={e => {
                               const newQuals = [...tempProfile.qualifications];
                               newQuals[idx].custom_degree = e.target.value;
                               setTempProfile({...tempProfile, qualifications: newQuals});
-                            }} 
-                            placeholder="Enter Degree Name"
-                          />
-                        )}
-                      </div>
-                      <div className="form-group flex-1">
-                        <label className="tiny-label">Institute</label>
-                        <input type="text" list="institute-list" value={q.institute} onChange={e => {
-                          const newQuals = [...tempProfile.qualifications];
-                          newQuals[idx].institute = e.target.value;
-                          if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_institute = '';
-                          setTempProfile({...tempProfile, qualifications: newQuals});
-                        }} placeholder="e.g. IIT Delhi" />
-                        <datalist id="institute-list">
-                          {TOP_INSTITUTES.map(inst => <option key={inst} value={inst} />)}
-                        </datalist>
-                        {q.institute === 'Not Listed / Other' && (
-                          <input 
-                            type="text" 
-                            className="mt-2 border-primary" 
-                            value={q.custom_institute || ''} 
-                            onChange={e => {
+                            }} />
+                          )}
+                          {q.university === 'Not Listed / Other' && (
+                            <input type="text" className="text-xs" value={q.custom_university || ''} placeholder="University Name" onChange={e => {
+                              const newQuals = [...tempProfile.qualifications];
+                              newQuals[idx].custom_university = e.target.value;
+                              setTempProfile({...tempProfile, qualifications: newQuals});
+                            }} />
+                          )}
+                          {q.institute === 'Not Listed / Other' && (
+                            <input type="text" className="text-xs" value={q.custom_institute || ''} placeholder="College Name" onChange={e => {
                               const newQuals = [...tempProfile.qualifications];
                               newQuals[idx].custom_institute = e.target.value;
                               setTempProfile({...tempProfile, qualifications: newQuals});
-                            }} 
-                            placeholder="Enter Institute Name"
-                          />
-                        )}
-                      </div>
-                      <button className="btn btn-danger-outline btn-sm" onClick={() => {
-                        setTempProfile({...tempProfile, qualifications: tempProfile.qualifications.filter((_, i) => i !== idx)});
-                      }}>✕</button>
+                            }} />
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -499,6 +512,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     // Clean up data before saving
                     const finalQuals = tempProfile.qualifications.map(q => ({
                       degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
+                      university: q.university === 'Not Listed / Other' ? q.custom_university : q.university,
                       institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
                     }));
                     
@@ -913,6 +927,8 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           margin-bottom: -1rem;
           z-index: 10;
         }
+
+        .btn-xs { padding: 4px 8px; font-size: 0.7rem; }
 
         @keyframes slide-up {
           from { opacity: 0; transform: translateY(20px); }

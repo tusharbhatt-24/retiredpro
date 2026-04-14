@@ -1,11 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import './index.css';
-import ChatBot from './chatbot/ChatBot';
-import AuthPage from './AuthPage';
 import AuthSuccess from './pages/AuthSuccess';
 import ProfilePage from './pages/ProfilePage';
-import { INDUSTRIES, TOP_INSTITUTES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from './utils/constants';
+import { INDUSTRIES, UNIVERSITIES, AFFILIATED_COLLEGES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from './utils/constants';
 
 // ─── Onboarding Component ──────────────────────────────────────────────────
 function OnboardingScreen({ user, onComplete, onSkip }) {
@@ -130,55 +125,75 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             <div className="section-divider mt-8 mb-4">Education & Qualifications</div>
             {editData.qualifications.map((q, idx) => (
               <div key={idx} className="qualification-row mb-6 bg-slate p-4 rounded-lg">
-                <div className="flex gap-4 mb-4 items-end">
-                  <div className="form-group flex-1">
-                    <label className="small font-bold">Degree / Certificate</label>
+                <div className="grid grid-cols-3 gap-4 mb-4 items-end">
+                  <div className="form-group">
+                    <label className="tiny-label font-bold">1. Degree</label>
                     <input type="text" className="form-control" list="degree-list" value={q.degree} onChange={e => {
                       const newQuals = [...editData.qualifications];
                       newQuals[idx].degree = e.target.value;
                       if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_degree = '';
                       setEditData({...editData, qualifications: newQuals});
-                    }} placeholder="Select or type degree..." />
+                    }} placeholder="e.g. B.Tech" />
                   </div>
-                  <div className="form-group flex-1">
-                    <label className="small font-bold">Institution</label>
-                    <input type="text" className="form-control" list="institute-list" value={q.institute} onChange={e => {
+                  <div className="form-group">
+                    <label className="tiny-label font-bold">2. University / Board</label>
+                    <input type="text" className="form-control" list="university-list" value={q.university || ''} onChange={e => {
+                      const newQuals = [...editData.qualifications];
+                      newQuals[idx].university = e.target.value;
+                      if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_university = '';
+                      // Reset institute if university changes
+                      newQuals[idx].institute = ''; 
+                      setEditData({...editData, qualifications: newQuals});
+                    }} placeholder="e.g. AKTU / IPU" />
+                  </div>
+                  <div className="form-group">
+                    <div className="flex justify-between items-center">
+                      <label className="tiny-label font-bold">3. Affiliated College</label>
+                      {editData.qualifications.length > 1 && (
+                        <button className="btn btn-danger-outline btn-xs" style={{ padding: '2px 6px', fontSize: '0.6rem' }} onClick={() => {
+                          setEditData({...editData, qualifications: editData.qualifications.filter((_, i) => i !== idx)});
+                        }}>✕</button>
+                      )}
+                    </div>
+                    <input type="text" className="form-control" list={`college-list-${idx}`} value={q.institute} onChange={e => {
                       const newQuals = [...editData.qualifications];
                       newQuals[idx].institute = e.target.value;
                       if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_institute = '';
                       setEditData({...editData, qualifications: newQuals});
-                    }} placeholder="Select or type institute..." />
+                    }} placeholder="Select college..." />
+                    <datalist id={`college-list-${idx}`}>
+                      {(AFFILIATED_COLLEGES[q.university] || []).map(c => <option key={c} value={c} />)}
+                    </datalist>
                   </div>
-                  {editData.qualifications.length > 1 && (
-                    <button className="btn btn-danger-outline btn-sm mb-1" onClick={() => {
-                      setEditData({...editData, qualifications: editData.qualifications.filter((_, i) => i !== idx)});
-                    }}>✕</button>
-                  )}
                 </div>
 
-                {/* Conditional Custom Inputs */}
-                {(q.degree === 'Not Listed / Other' || q.institute === 'Not Listed / Other') && (
-                  <div className="flex gap-4 animate-slide-up">
-                    {q.degree === 'Not Listed / Other' && (
-                      <div className="form-group flex-1">
-                        <label className="tiny-label text-primary">Enter Your Degree Name</label>
-                        <input type="text" className="form-control border-primary" value={q.custom_degree || ''} onChange={e => {
+                {/* Conditional Custom Inputs for All 3 */}
+                {(q.degree === 'Not Listed / Other' || q.university === 'Not Listed / Other' || q.institute === 'Not Listed / Other') && (
+                  <div className="bg-white p-3 rounded border border-dashed border-primary mt-2">
+                    <p className="tiny-label text-primary font-bold mb-2">Custom Education Details</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      {q.degree === 'Not Listed / Other' && (
+                        <input type="text" className="form-control text-xs" value={q.custom_degree || ''} onChange={e => {
                           const newQuals = [...editData.qualifications];
                           newQuals[idx].custom_degree = e.target.value;
                           setEditData({...editData, qualifications: newQuals});
-                        }} placeholder="e.g. Master of Data Science" />
-                      </div>
-                    )}
-                    {q.institute === 'Not Listed / Other' && (
-                      <div className="form-group flex-1">
-                        <label className="tiny-label text-primary">Enter Your Institute Name</label>
-                        <input type="text" className="form-control border-primary" value={q.custom_institute || ''} onChange={e => {
+                        }} placeholder="Actual Degree Name" />
+                      )}
+                      {q.university === 'Not Listed / Other' && (
+                        <input type="text" className="form-control text-xs" value={q.custom_university || ''} onChange={e => {
+                          const newQuals = [...editData.qualifications];
+                          newQuals[idx].custom_university = e.target.value;
+                          setEditData({...editData, qualifications: newQuals});
+                        }} placeholder="Actual University Name" />
+                      )}
+                      {q.institute === 'Not Listed / Other' && (
+                        <input type="text" className="form-control text-xs" value={q.custom_institute || ''} onChange={e => {
                           const newQuals = [...editData.qualifications];
                           newQuals[idx].custom_institute = e.target.value;
                           setEditData({...editData, qualifications: newQuals});
-                        }} placeholder="e.g. University of California" />
-                      </div>
-                    )}
+                        }} placeholder="Actual College Name" />
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -272,6 +287,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                   // Clean up Not Listed values with their custom values
                   const finalQuals = editData.qualifications.map(q => ({
                     degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
+                    university: q.university === 'Not Listed / Other' ? q.custom_university : q.university,
                     institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
                   }));
 
@@ -282,11 +298,11 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 Correct & Continue to My Profile
               </button>
               <button className="btn btn-outline" onClick={onSkip}>Skip & Set Up Later</button>
-              <datalist id="degree-list">
-              {DEGREES.map(d => <option key={d} value={d} />)}
+              <datalist id="university-list">
+              {UNIVERSITIES.map(u => <option key={u} value={u} />)}
             </datalist>
-            <datalist id="institute-list">
-              {TOP_INSTITUTES.map(inst => <option key={inst} value={inst} />)}
+            <datalist id="degree-list">
+              {DEGREES.map(d => <option key={d} value={d} />)}
             </datalist>
             <datalist id="company-list">
               {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}

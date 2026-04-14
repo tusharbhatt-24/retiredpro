@@ -27,54 +27,74 @@ export const INDUSTRIES = [
   "Not Listed / Other"
 ];
 
-export const TOP_INSTITUTES = [
-  // Top Indian & Global
-  "Indian Institute of Science (IISc), Bangalore",
-  "IIT Bombay", "IIT Delhi", "IIT Madras", "IIT Kanpur", "IIT Kharagpur",
-  "IIM Ahmedabad", "IIM Bangalore", "IIM Calcutta",
-  "Massachusetts Institute of Technology (MIT)", "Stanford University", "Harvard University",
-  "University of Oxford", "University of Cambridge", "National University of Singapore (NUS)",
-  
-  // AKTU / Uttar Pradesh Focus
+export const UNIVERSITIES = [
   "Dr. A.P.J. Abdul Kalam Technical University (AKTU)",
-  "Institute of Engineering and Technology (IET), Lucknow",
-  "Harcourt Butler Technical University (HBTU), Kanpur",
-  "Kamla Nehru Institute of Technology (KNIT), Sultanpur",
-  "Madan Mohan Malaviya University of Technology (MMMUT), Gorakhpur",
-  "GL Bajaj Institute of Technology and Management, Greater Noida",
-  "KCC Institute of Technology & Management (KCCITM), Greater Noida",
-  "Ajay Kumar Garg Engineering College (AKGEC), Ghaziabad",
-  "JSS Academy of Technical Education (JSSATE), Noida",
-  "ABES Engineering College, Ghaziabad",
-  "Galgotias College of Engineering and Technology, Greater Noida",
-  "KIET Group of Institutions, Ghaziabad",
-  "Pranveer Singh Institute of Technology (PSIT), Kanpur",
-  
-  // IPU / Delhi Focus
   "Guru Gobind Singh Indraprastha University (GGSIPU)",
-  "University School of Information, Communication and Technology (USICT)",
-  "Maharaja Agrasen Institute of Technology (MAIT), Delhi",
-  "Maharaja Surajmal Institute of Technology (MSIT), Delhi",
-  "Bhagwan Parshuram Institute of Technology (BPIT), Delhi",
-  "Bharati Vidyapeeth's College of Engineering (BVCOE), Delhi",
-  "Guru Tegh Bahadur Institute of Technology (GTBIT), Delhi",
-  "Dr. Akhilesh Das Gupta Institute of Technology & Management (ADGITM)",
-  "Vivekananda Institute of Professional Studies (VIPS), Delhi",
-  
-  // Other Leading Institutes
-  "Delhi Technological University (DTU)",
-  "Netaji Subhas University of Technology (NSUT)",
+  "University of Delhi (DU)",
+  "Indian Institute of Technology (IIT)",
+  "Indian Institute of Management (IIM)",
   "BITS Pilani",
-  "Vellore Institute of Technology (VIT)",
-  "BITS Hyderabad / Goa",
-  "Manipal Academy of Higher Education",
+  "National Institute of Technology (NIT)",
   "Amity University",
-  "Shiv Nadar University",
-  "SRM Institute of Science and Technology",
-  "Bennett University, Greater Noida",
-  "Thapar Institute of Engineering and Technology",
+  "Vellore Institute of Technology (VIT)",
+  "Manipal Academy of Higher Education",
+  "Stanford University",
+  "Harvard University",
+  "Massachusetts Institute of Technology (MIT)",
+  "University of Oxford",
   "Not Listed / Other"
 ];
+
+export const AFFILIATED_COLLEGES = {
+  "Dr. A.P.J. Abdul Kalam Technical University (AKTU)": [
+    "IET Lucknow (Institute of Engineering and Technology)",
+    "HBTU Kanpur (Harcourt Butler)",
+    "KNIT Sultanpur (Kamla Nehru)",
+    "GL Bajaj Institute of Technology and Management, Greater Noida",
+    "KCC Institute of Technology & Management (KCCITM), Greater Noida",
+    "Ajay Kumar Garg Engineering College (AKGEC), Ghaziabad",
+    "JSS Academy of Technical Education (JSSATE), Noida",
+    "ABES Engineering College, Ghaziabad",
+    "Galgotias College of Engineering and Technology, Greater Noida",
+    "KIET Group of Institutions, Ghaziabad",
+    "PSIT (Pranveer Singh Institute of Technology), Kanpur",
+    "NIET (Noida Institute of Engineering and Technology)",
+    "AKGEC Ghaziabad",
+    "Not Listed / Other"
+  ],
+  "Guru Gobind Singh Indraprastha University (GGSIPU)": [
+    "USICT (University School of Information, Communication and Technology)",
+    "Maharaja Agrasen Institute of Technology (MAIT)",
+    "Maharaja Surajmal Institute of Technology (MSIT)",
+    "Bhagwan Parshuram Institute of Technology (BPIT)",
+    "Bharati Vidyapeeth's College of Engineering (BVCOE)",
+    "Guru Tegh Bahadur Institute of Technology (GTBIT)",
+    "ADGITM (Dr. Akhilesh Das Gupta Institute)",
+    "VIPS (Vivekananda Institute of Professional Studies)",
+    "JIMS (Jagannath Institute of Management Sciences)",
+    "Not Listed / Other"
+  ],
+  "University of Delhi (DU)": [
+    "St. Stephens College",
+    "Shri Ram College of Commerce (SRCC)",
+    "Hindu College",
+    "Hansraj College",
+    "Miranda House",
+    "Lady Shri Ram College (LSR)",
+    "Delhi College of Arts and Commerce (DCAC)",
+    "Shaheed Sukhdev College of Business Studies (SSCBS)",
+    "Not Listed / Other"
+  ],
+  "Indian Institute of Technology (IIT)": [
+    "IIT Bombay", "IIT Delhi", "IIT Madras", "IIT Kanpur", "IIT Kharagpur", "IIT Roorkee", "IIT Guwahati", "IIT BHU", "Not Listed / Other"
+  ],
+  "Indian Institute of Management (IIM)": [
+    "IIM Ahmedabad", "IIM Bangalore", "IIM Calcutta", "IIM Lucknow", "IIM Indore", "IIM Kozhikode", "Not Listed / Other"
+  ],
+  "National Institute of Technology (NIT)": [
+    "NIT Trichy", "NIT Surathkal", "NIT Warangal", "NIT Calicut", "NIT Rourkela", "NIT Kurukshetra", "Not Listed / Other"
+  ]
+};
 
 export const SENIOR_DESIGNATIONS = [
   "Chief Executive Officer (CEO)",
