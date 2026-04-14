@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './index.css';
+import ChatBot from './chatbot/ChatBot';
+import AuthPage from './AuthPage';
+import AuthSuccess from './pages/AuthSuccess';
+import ProfilePage from './pages/ProfilePage';
 
 // ─── Onboarding Component ──────────────────────────────────────────────────
 function OnboardingScreen({ user, onComplete, onSkip }) {
@@ -69,9 +73,8 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
       skills: '',
       bio: '',
       location: '',
-      ex_company: '',
-      ex_designation: '',
-      qualifications: ''
+      qualifications: [],
+      work_history: []
     });
     setIsManual(true);
     setIsReviewing(true);
@@ -298,13 +301,14 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                   <button className="btn btn-primary mt-4">Select PDF/DOCX</button>
                 </>
               )}
-          </div>
+            </div>
 
-          <div className="option-card skip" onClick={onSkip}>
-            <div className="option-icon">✍️</div>
-            <h3>Skip for Now</h3>
-            <p>You can manually fill in your details later in your profile.</p>
-            <button className="btn btn-outline mt-4">Start Manually</button>
+            <div className="option-card manual" onClick={!isParsing ? startManual : undefined}>
+              <div className="option-icon">✍️</div>
+              <h3>Fill Manually</h3>
+              <p>Type in your details step-by-step to customize your profile.</p>
+              <button className="btn btn-outline mt-4">Start Manually</button>
+            </div>
           </div>
         </div>
       </div>
@@ -381,10 +385,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
   );
 }
 
-import ChatBot from './chatbot/ChatBot';
-import AuthPage from './AuthPage';
-import AuthSuccess from './pages/AuthSuccess';
-import ProfilePage from './pages/ProfilePage';
+
 
 function ProfessionalHome() {
   return (
