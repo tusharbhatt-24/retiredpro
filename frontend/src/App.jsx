@@ -6,8 +6,19 @@ import './index.css';
 function OnboardingScreen({ user, onComplete, onSkip }) {
   const [isParsing, setIsParsing] = useState(false);
   const [parsingProgress, setParsingProgress] = useState(0);
+  const fileInputRef = useRef(null);
 
-  const handleResumeUpload = () => {
+  const handleResumeClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      startParsing();
+    }
+  };
+
+  const startParsing = () => {
     setIsParsing(true);
     let progress = 0;
     const interval = setInterval(() => {
@@ -32,7 +43,14 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
         </div>
 
         <div className="onboarding-options">
-          <div className="option-card upload" onClick={!isParsing ? handleResumeUpload : undefined}>
+          <div className="option-card upload" onClick={!isParsing ? handleResumeClick : undefined}>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              accept=".pdf,.doc,.docx" 
+              onChange={handleFileChange}
+            />
             {isParsing ? (
               <div className="parsing-loader">
                 <div className="spinner"></div>
@@ -1207,6 +1225,10 @@ function App() {
 
   const handleRoleSelect = (role) => {
     setUserRole(role);
+    // If it's a professional, show onboarding immediately to setup profile
+    if (role === 'Professional') {
+      setActiveView('onboarding');
+    }
   };
 
   const handleResetRole = () => {
