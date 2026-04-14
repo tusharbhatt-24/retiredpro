@@ -15,10 +15,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack }) => {
       ? ['Project Management', 'Consulting', 'Leadership', 'Risk Management']
       : ['Strategic Planning', 'Process Optimization', 'Team Leadership', 'Six Sigma Black Belt', 'Global Logistics'],
     location: 'Mumbai, India',
-    ex_company: 'Global Logistics Solutions Inc.',
-    ex_designation: 'Senior Logistics Advisor',
-    age: 58,
-    dob: '1966-05-12'
+    ex_company: 'Logistics Pioneers Inc.',
+    ex_designation: 'Staff Logistics Manager',
+    age: 50,
+    dob: '1974-01-01'
   };
 
   const initials = profile.name ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
@@ -234,7 +234,11 @@ const ProfilePage = ({ user, userRole, profileData, onBack }) => {
             <div className="profile-title-area">
               <div className="flex items-center gap-3">
                 <h1 style={{ margin: 0, fontSize: '2rem' }}>{profile.name}</h1>
-                <span className="expert-badge-v2">Verified Expert</span>
+                {profileData ? (
+                  <span className="badge-pulsing">Resume Powered</span>
+                ) : (
+                  <span className="expert-badge-v2">Verified Expert</span>
+                )}
               </div>
               <p className="profile-subtitle">{profile.ex_designation} | {profile.years_of_experience} Exp</p>
               <div className="flex gap-4 mt-2">
@@ -375,6 +379,24 @@ const ProfilePage = ({ user, userRole, profileData, onBack }) => {
           font-size: 0.75rem;
           font-weight: bold;
           text-transform: uppercase;
+        }
+
+        .badge-pulsing {
+          background-color: #f0fdf4;
+          color: #16a34a;
+          border: 1px solid #bbf7d0;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: bold;
+          text-transform: uppercase;
+          animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
 
         .profile-subtitle {
