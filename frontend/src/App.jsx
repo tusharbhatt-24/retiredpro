@@ -284,17 +284,20 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
               <div className="option-icon">📄</div>
               <h3>Auto-Fill with Resume</h3>
               <p>Upload your resume and we'll build your profile in seconds.</p>
-              {isParsing && (
+              {isParsing ? (
                 <div className="parsing-status mt-4">
                   <div className="progress-bar-bg">
                     <div className="progress-bar-fill" style={{ width: `${parsingProgress}%` }}></div>
                   </div>
                   <span className="small mt-2 d-block">Analyzing resume... {parsingProgress}%</span>
+                  <p className="small text-secondary mt-2">Extracting career milestones and skills...</p>
                 </div>
-                <p>We'll use AI to extract your career milestones and skills.</p>
-                <button className="btn btn-primary mt-4">Select PDF/DOCX</button>
-              </>
-            )}
+              ) : (
+                <>
+                  <p>We'll use AI to extract your career milestones and skills.</p>
+                  <button className="btn btn-primary mt-4">Select PDF/DOCX</button>
+                </>
+              )}
           </div>
 
           <div className="option-card skip" onClick={onSkip}>
