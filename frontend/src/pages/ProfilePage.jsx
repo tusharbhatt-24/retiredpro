@@ -1,9 +1,27 @@
 import React, { useState } from 'react';
 
-const ProfilePage = ({ user, userRole, onBack }) => {
+const ProfilePage = ({ user, userRole, profileData, onBack }) => {
   const [activeCategory, setActiveCategory] = useState('overview');
 
-  const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
+  const profile = profileData || {
+    name: user.name || 'User',
+    email: user.email,
+    industry: userRole === 'Company' ? 'Technology' : 'Supply Chain & Logistics',
+    years_of_experience: userRole === 'Company' ? '15+ Years' : '28 Years',
+    bio: userRole === 'Company' 
+      ? "We are a forward-thinking organization dedicated to innovation and excellence. We value the deep experience that senior professionals bring to our projects and are committed to creating meaningful consulting opportunities."
+      : "Highly experienced professional with over 25 years in the industry. Currently focused on sharing expertise and mentoring the next generation of leaders while maintaining a balanced retirement lifestyle.",
+    skills: userRole === 'Company' 
+      ? ['Project Management', 'Consulting', 'Leadership', 'Risk Management']
+      : ['Strategic Planning', 'Process Optimization', 'Team Leadership', 'Six Sigma Black Belt', 'Global Logistics'],
+    location: 'Mumbai, India',
+    ex_company: 'Global Logistics Solutions Inc.',
+    ex_designation: 'Senior Logistics Advisor',
+    age: 58,
+    dob: '1966-05-12'
+  };
+
+  const initials = profile.name ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
 
   const categories = userRole === 'Company' ? [
     { id: 'overview', label: 'Company Overview', icon: '🏢' },
@@ -28,16 +46,24 @@ const ProfilePage = ({ user, userRole, onBack }) => {
             <div className="info-grid">
               <div className="info-item">
                 <label>{userRole === 'Company' ? 'Legal Name' : 'Full Name'}</label>
-                <div className="value">{user.name || 'Not provided'}</div>
+                <div className="value">{profile.name}</div>
               </div>
               <div className="info-item">
                 <label>{userRole === 'Company' ? 'Business Email' : 'Email Address'}</label>
                 <div className="value">{user.email}</div>
               </div>
-              <div className="info-item">
-                <label>Member Since</label>
-                <div className="value">April 2024</div>
-              </div>
+              {userRole === 'Professional' && (
+                <>
+                  <div className="info-item">
+                    <label>Age & DOB</label>
+                    <div className="value">{profile.age} Yrs ({profile.dob})</div>
+                  </div>
+                  <div className="info-item">
+                    <label>Current Location</label>
+                    <div className="value">{profile.location}</div>
+                  </div>
+                </>
+              )}
               <div className="info-item">
                 <label>Account Status</label>
                 <div className="value">
@@ -48,12 +74,7 @@ const ProfilePage = ({ user, userRole, onBack }) => {
 
             <div className="profile-bio mt-6">
               <label>{userRole === 'Company' ? 'About Our Company' : 'Professional Bio'}</label>
-              <p>
-                {userRole === 'Company' 
-                  ? "We are a forward-thinking organization dedicated to innovation and excellence. We value the deep experience that senior professionals bring to our projects and are committed to creating meaningful consulting opportunities."
-                  : "Highly experienced professional with over 25 years in the industry. Currently focused on sharing expertise and mentoring the next generation of leaders while maintaining a balanced retirement lifestyle."
-                }
-              </p>
+              <p>{profile.bio}</p>
             </div>
           </div>
         );
@@ -65,12 +86,12 @@ const ProfilePage = ({ user, userRole, onBack }) => {
               <h4 className="category-title">{userRole === 'Company' ? 'Preferred Industries' : 'Domain Experience'}</h4>
               <div className="info-grid">
                 <div className="info-item">
-                  <label>Industry Focus</label>
-                  <div className="value">{userRole === 'Company' ? 'Technology, Healthcare' : 'Supply Chain & Logistics'}</div>
+                  <label>Industry / Domain</label>
+                  <div className="value">{profile.industry}</div>
                 </div>
                 <div className="info-item">
                   <label>{userRole === 'Company' ? 'Min. Experience Required' : 'Years of Experience'}</label>
-                  <div className="value">{userRole === 'Company' ? '15+ Years' : '28 Years'}</div>
+                  <div className="value">{profile.years_of_experience}</div>
                 </div>
               </div>
             </div>
@@ -78,10 +99,7 @@ const ProfilePage = ({ user, userRole, onBack }) => {
             <div className="category-group mt-6">
               <h4 className="category-title">{userRole === 'Company' ? 'Top Skills We Hire' : 'Skills & Certifications'}</h4>
               <div className="flex gap-2 flex-wrap mt-2">
-                {(userRole === 'Company' 
-                  ? ['Project Management', 'Consulting', 'Leadership', 'Risk Management']
-                  : ['Strategic Planning', 'Process Optimization', 'Team Leadership', 'Six Sigma Black Belt', 'Global Logistics']
-                ).map(skill => (
+                {profile.skills.map(skill => (
                   <span key={skill} className="job-tag" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>{skill}</span>
                 ))}
               </div>
@@ -215,12 +233,12 @@ const ProfilePage = ({ user, userRole, onBack }) => {
             </div>
             <div className="profile-title-area">
               <div className="flex items-center gap-3">
-                <h1 style={{ margin: 0, fontSize: '2rem' }}>{user.name}</h1>
+                <h1 style={{ margin: 0, fontSize: '2rem' }}>{profile.name}</h1>
                 <span className="expert-badge-v2">Verified Expert</span>
               </div>
-              <p className="profile-subtitle">Senior Logistics Advisor | 25+ Years Exp</p>
+              <p className="profile-subtitle">{profile.ex_designation} | {profile.years_of_experience} Exp</p>
               <div className="flex gap-4 mt-2">
-                <span className="profile-meta">📍 Mumbai, India</span>
+                <span className="profile-meta">📍 {profile.location}</span>
                 <span className="profile-meta">📧 {user.email}</span>
               </div>
             </div>

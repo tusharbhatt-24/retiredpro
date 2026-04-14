@@ -1175,6 +1175,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('companies');
   const [userRole, setUserRole] = useState(null);
   const [activeView, setActiveView] = useState('home');
+  const [parsedProfile, setParsedProfile] = useState(null);
 
   // ── Auth State ──────────────────────────────────────────────────────────────
   const [authData, setAuthData] = useState(() => {
@@ -1225,8 +1226,8 @@ function App() {
 
   const handleRoleSelect = (role) => {
     setUserRole(role);
-    // If it's a professional, show onboarding immediately to setup profile
-    if (role === 'Professional') {
+    // If it's a professional, and no parsed profile yet, show onboarding
+    if (role === 'Professional' && !parsedProfile) {
       setActiveView('onboarding');
     }
   };
@@ -1328,7 +1329,20 @@ function App() {
           <OnboardingScreen 
             user={authData.user} 
             onComplete={() => {
-              // Mark onboarding as complete locally and go to profile
+              // Simulate data extracted from a real resume
+              setParsedProfile({
+                name: authData.user.name || 'Verified Expert',
+                age: 58,
+                dob: '1966-05-12',
+                industry: 'Global Supply Chain & Logistics',
+                years_of_experience: '28 Years',
+                expertise: 'Enterprise resource planning, International trade regulations, and lean manufacturing.',
+                skills: ['Strategic Planning', 'Process Optimization', 'Global Operations', 'Crisis Management', 'SAP/ERP', 'Change Management'],
+                bio: 'A visionary supply chain leader with nearly 3 decades of experience in navigating complex global logistics networks for Fortune 500 companies. Dedicated to mentor-ship and operational excellence.',
+                location: 'Mumbai, India',
+                ex_company: 'Global Logistics Solutions Inc.',
+                ex_designation: 'Senior VP of Operations'
+              });
               setActiveView('profile');
             }}
             onSkip={() => setActiveView('home')}
@@ -1336,11 +1350,11 @@ function App() {
         ) : userRole === 'Company' ? (
           activeView === 'home' ? <CompanyHome /> : 
           activeView === 'verification' ? <CompanySignup /> :
-          <ProfilePage user={authData.user} userRole={userRole} onBack={() => setActiveView('home')} />
+          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} />
         ) : (
           activeView === 'home' ? <ProfessionalHome /> : 
           activeView === 'verification' ? <ProfessionalSignup /> :
-          <ProfilePage user={authData.user} userRole={userRole} onBack={() => setActiveView('home')} />
+          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} />
         )}
 
         {/* Footer */}
