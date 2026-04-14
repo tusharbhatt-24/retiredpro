@@ -91,26 +91,32 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
       case 'professional':
         return (
           <div className="profile-section-content animate-fade-in">
-            <h3>{userRole === 'Company' ? 'Hiring Preferences' : 'Professional Expertise'}</h3>
-            <div className="category-group">
-              <h4 className="category-title">{userRole === 'Company' ? 'Preferred Industries' : 'Domain Experience'}</h4>
-              <div className="info-grid">
-                <div className="info-item">
-                  <label>Industry / Domain</label>
-                  <div className="value">{profile.industry}</div>
-                </div>
-                <div className="info-item">
-                  <label>{userRole === 'Company' ? 'Min. Experience Required' : 'Years of Experience'}</label>
-                  <div className="value">{profile.years_of_experience}</div>
-                </div>
+            <div className="category-group mt-8">
+              <h4 className="category-title">Professional Experience History</h4>
+              <div className="experience-list">
+                {(profile.work_history || []).map((work, idx) => (
+                  <div key={idx} className="experience-item p-4 border rounded-lg bg-slate mb-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-bold text-primary" style={{ fontSize: '1.1rem' }}>{work.role}</div>
+                        <div className="text-secondary">{work.company}</div>
+                      </div>
+                      <span className="badge badge-outline">{work.duration}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="category-group mt-8">
               <h4 className="category-title">Education & Qualifications</h4>
-              <div className="qualification-card p-4 border rounded-lg bg-slate">
-                <p className="font-bold text-primary">{profile.qualifications || 'Degree Information not provided'}</p>
-                <p className="small text-secondary">Verified Academic Background</p>
+              <div className="education-list grid grid-cols-2 gap-4">
+                {(profile.qualifications || []).map((qual, idx) => (
+                  <div key={idx} className="qualification-card p-4 border rounded-lg bg-slate">
+                    <p className="font-bold text-primary" style={{ marginBottom: '0.25rem' }}>{qual.degree}</p>
+                    <p className="small text-secondary">{qual.institute}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -361,17 +367,45 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 </div>
               </div>
 
+              <div className="edit-list-sections mt-6">
+                <h4 className="small font-bold text-primary mb-2">Qualifications (Comma separated: Degree|Institute, ...)</h4>
+                <textarea 
+                  className="form-control mb-4" 
+                  rows="2" 
+                  id="edit-quals-list" 
+                  defaultValue={(profile.qualifications || []).map(q => `${q.degree}|${q.institute}`).join(', ')} 
+                />
+                
+                <h4 className="small font-bold text-primary mb-2">Work History (Comma separated: Role|Company|Year, ...)</h4>
+                <textarea 
+                  className="form-control" 
+                  rows="3" 
+                  id="edit-work-list" 
+                  defaultValue={(profile.work_history || []).map(w => `${w.role}|${w.company}|${w.duration}`).join(', ')} 
+                />
+              </div>
+
               <div className="flex gap-4 mt-8">
                 <button 
                   className="btn btn-primary flex-1" 
                   onClick={() => {
+                    const qualRaw = document.getElementById('edit-quals-list').value;
+                    const workRaw = document.getElementById('edit-work-list').value;
+                    
                     const updated = {
                       name: document.getElementById('edit-name').value,
                       industry: document.getElementById('edit-industry').value,
                       years_of_experience: document.getElementById('edit-exp').value,
-                      qualifications: document.getElementById('edit-qual').value,
                       mobile: document.getElementById('edit-mobile').value,
-                      bio: document.getElementById('edit-bio').value
+                      bio: document.getElementById('edit-bio').value,
+                      qualifications: qualRaw.split(',').filter(s => s.includes('|')).map(s => {
+                        const [degree, institute] = s.split('|').map(p => p.trim());
+                        return { degree, institute };
+                      }),
+                      work_history: workRaw.split(',').filter(s => s.includes('|')).map(s => {
+                        const [role, company, duration] = s.split('|').map(p => p.trim());
+                        return { role, company, duration };
+                      })
                     };
                     onUpdateProfile(updated);
                     setIsEditing(false);

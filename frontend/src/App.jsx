@@ -37,15 +37,20 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             gender: 'Male',
             dob: '1969-01-01',
             mobile: '+91 98765 43210',
-            industry: 'Management & Operations',
-            years_of_experience: '25+ Years',
-            expertise: 'Leadership, Strategic Planning, Financial Analysis',
-            skills: 'Operations, Budgeting, Team Building',
-            bio: 'Experienced professional with a proven track record of success in leading large teams and managing complex projects.',
+            industry: 'Supply Chain & Logistics',
+            years_of_experience: '28+ Years',
+            expertise: 'Global Logistics, SAP S/4HANA, Lean Six Sigma',
+            skills: 'Operations, Strategic Planning, Crisis Management',
+            bio: 'A visionary supply chain leader with over 3 decades of experience in navigating complex global logistics networks for Fortune 500 companies.',
             location: 'Mumbai, India',
-            ex_company: 'Current/Previous Global Corp',
-            ex_designation: 'Senior Executive',
-            qualifications: 'MBA in Finance (IIM Bangalore), B.Tech in Mechanical (IIT Delhi)'
+            qualifications: [
+              { degree: 'MBA in Operations', institute: 'IIM Bangalore' },
+              { degree: 'B.Tech in Mechanical Engineering', institute: 'IIT Delhi' }
+            ],
+            work_history: [
+              { company: 'Global Logistics Solutions Inc.', role: 'Senior VP of Operations', duration: '2010 - 2024' },
+              { company: 'Aerospace International', role: 'Director of Logistics', duration: '2000 - 2010' }
+            ]
           });
         }, 800);
       }
@@ -118,10 +123,73 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="small font-bold text-primary">Academic Qualifications</label>
-              <input type="text" className="form-control" value={editData.qualifications} onChange={e => setEditData({...editData, qualifications: e.target.value})} placeholder="e.g. MBA from IIM..." />
-            </div>
+            <div className="section-divider mt-8 mb-4">Education & Qualifications</div>
+            {editData.qualifications.map((q, idx) => (
+              <div key={idx} className="flex gap-4 mb-4 items-end">
+                <div className="form-group flex-1">
+                  <label className="small font-bold">Degree / Certificate</label>
+                  <input type="text" className="form-control" value={q.degree} onChange={e => {
+                    const newQuals = [...editData.qualifications];
+                    newQuals[idx].degree = e.target.value;
+                    setEditData({...editData, qualifications: newQuals});
+                  }} />
+                </div>
+                <div className="form-group flex-1">
+                  <label className="small font-bold">Institution</label>
+                  <input type="text" className="form-control" value={q.institute} onChange={e => {
+                    const newQuals = [...editData.qualifications];
+                    newQuals[idx].institute = e.target.value;
+                    setEditData({...editData, qualifications: newQuals});
+                  }} />
+                </div>
+                {editData.qualifications.length > 1 && (
+                  <button className="btn btn-danger-outline btn-sm mb-1" onClick={() => {
+                    setEditData({...editData, qualifications: editData.qualifications.filter((_, i) => i !== idx)});
+                  }}>✕</button>
+                )}
+              </div>
+            ))}
+            <button className="btn btn-outline btn-sm mb-6" onClick={() => setEditData({...editData, qualifications: [...editData.qualifications, {degree: '', institute: ''}]})}>+ Add Education</button>
+
+            <div className="section-divider mt-4 mb-4">Work Experience History</div>
+            {editData.work_history.map((w, idx) => (
+              <div key={idx} className="work-entry-row mb-6">
+                <div className="flex gap-4 mb-2">
+                  <div className="form-group flex-1">
+                    <label className="small font-bold">Company</label>
+                    <input type="text" className="form-control" value={w.company} onChange={e => {
+                      const newWork = [...editData.work_history];
+                      newWork[idx].company = e.target.value;
+                      setEditData({...editData, work_history: newWork});
+                    }} />
+                  </div>
+                  <div className="form-group flex-1">
+                    <label className="small font-bold">Designation</label>
+                    <input type="text" className="form-control" value={w.role} onChange={e => {
+                      const newWork = [...editData.work_history];
+                      newWork[idx].role = e.target.value;
+                      setEditData({...editData, work_history: newWork});
+                    }} />
+                  </div>
+                </div>
+                <div className="flex gap-4 items-center">
+                  <div className="form-group flex-1">
+                    <label className="small font-bold">Duration (e.g. 2010 - 2024)</label>
+                    <input type="text" className="form-control" value={w.duration} onChange={e => {
+                      const newWork = [...editData.work_history];
+                      newWork[idx].duration = e.target.value;
+                      setEditData({...editData, work_history: newWork});
+                    }} />
+                  </div>
+                  {editData.work_history.length > 1 && (
+                    <button className="btn btn-danger-outline btn-sm mt-4" onClick={() => {
+                      setEditData({...editData, work_history: editData.work_history.filter((_, i) => i !== idx)});
+                    }}>Remove</button>
+                  )}
+                </div>
+              </div>
+            ))}
+            <button className="btn btn-outline btn-sm mb-8" onClick={() => setEditData({...editData, work_history: [...editData.work_history, {company: '', role: '', duration: ''}]})}>+ Add Work History</button>
 
             <div className="flex gap-4">
               <div className="form-group flex-1">
