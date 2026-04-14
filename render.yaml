@@ -11,7 +11,11 @@ services:
       - key: DATABASE_URL
         sync: false # Set as a Secret in Render UI
       - key: PORT
-        value: 5050 # Matches the port used in App.jsx localhost (or 10000 for standard)
+        value: 5050
+      - key: FRONTEND_URL
+        value: https://retiredpro.vercel.app
+      - key: CLIENT_URL
+        value: https://retiredpro.vercel.app
 
   # Frontend Static Site
   - type: web
