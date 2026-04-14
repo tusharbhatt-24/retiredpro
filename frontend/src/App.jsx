@@ -27,10 +27,22 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
       if (progress >= 100) {
         clearInterval(interval);
         setTimeout(() => {
-          onComplete();
-        }, 500);
+          onComplete({
+            name: user.name || 'Verified Expert',
+            age: 58,
+            dob: '1966-05-12',
+            industry: 'Global Supply Chain & Logistics',
+            years_of_experience: '32 Years of Expertise',
+            expertise: 'Strategic Global Logistics, ERP Transformation, and Lean Six Sigma Implementation.',
+            skills: ['Global Supply Chain', 'Customs Compliance', 'SAP S/4HANA', 'Strategic Leadership', 'Process Automation', 'Risk Mitigation'],
+            bio: 'DISTINGUISHED LOGISTICS LEADER: Over 3 decades of experience managing multi-billion dollar logistics operations for top-tier aviation and manufacturing firms. Expert in driving operational efficiency through technology integration.',
+            location: 'Mumbai, MH, India',
+            ex_company: 'Aerospace Logistics International',
+            ex_designation: 'Chief Operations Officer (COO)'
+          });
+        }, 800);
       }
-    }, 300);
+    }, 200);
   };
 
   return (
@@ -1328,21 +1340,8 @@ function App() {
         {activeView === 'onboarding' ? (
           <OnboardingScreen 
             user={authData.user} 
-            onComplete={() => {
-              // Simulate data extracted from a real resume
-              setParsedProfile({
-                name: authData.user.name || 'Verified Expert',
-                age: 58,
-                dob: '1966-05-12',
-                industry: 'Global Supply Chain & Logistics',
-                years_of_experience: '28 Years',
-                expertise: 'Enterprise resource planning, International trade regulations, and lean manufacturing.',
-                skills: ['Strategic Planning', 'Process Optimization', 'Global Operations', 'Crisis Management', 'SAP/ERP', 'Change Management'],
-                bio: 'A visionary supply chain leader with nearly 3 decades of experience in navigating complex global logistics networks for Fortune 500 companies. Dedicated to mentor-ship and operational excellence.',
-                location: 'Mumbai, India',
-                ex_company: 'Global Logistics Solutions Inc.',
-                ex_designation: 'Senior VP of Operations'
-              });
+            onComplete={(data) => {
+              setParsedProfile(data);
               setActiveView('profile');
             }}
             onSkip={() => setActiveView('home')}
