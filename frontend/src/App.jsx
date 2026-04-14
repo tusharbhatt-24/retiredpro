@@ -74,8 +74,8 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
       skills: '',
       bio: '',
       location: '',
-      qualifications: [],
-      work_history: []
+      qualifications: [{ degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }],
+      work_history: [{ company: '', role: '', duration: '', custom_company: '', custom_role: '' }]
     });
     setIsManual(true);
     setIsReviewing(true);
@@ -203,7 +203,18 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 )}
               </div>
             ))}
-            <button className="btn btn-outline btn-sm mb-6" onClick={() => setEditData({...editData, qualifications: [...editData.qualifications, {degree: '', institute: ''}]})}>+ Add Education</button>
+             <button 
+               className="btn btn-outline btn-sm mb-6" 
+               onClick={() => setEditData({
+                 ...editData, 
+                 qualifications: [
+                   ...editData.qualifications, 
+                   { degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }
+                 ]
+               })}
+             >
+               + Add Education
+             </button>
 
             <div className="section-divider mt-4 mb-4">Work Experience History</div>
             {editData.work_history.map((w, idx) => (
@@ -249,7 +260,18 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 </div>
               </div>
             ))}
-            <button className="btn btn-outline btn-sm mb-8" onClick={() => setEditData({...editData, work_history: [...editData.work_history, {company: '', role: '', duration: ''}]})}>+ Add Work History</button>
+             <button 
+               className="btn btn-outline btn-sm mb-8" 
+               onClick={() => setEditData({
+                 ...editData, 
+                 work_history: [
+                   ...editData.work_history, 
+                   { company: '', role: '', duration: '', custom_company: '', custom_role: '' }
+                 ]
+               })}
+             >
+               + Add Work History
+             </button>
 
             <div className="flex gap-4">
               <div className="form-group flex-1">

@@ -382,7 +382,13 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 <div className="edit-section mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="section-subtitle">Education & Qualifications</h4>
-                    <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({...tempProfile, qualifications: [...tempProfile.qualifications, {degree: '', institute: ''}]})}>+ Add</button>
+                    <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({
+                      ...tempProfile, 
+                      qualifications: [
+                        ...tempProfile.qualifications, 
+                        { degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }
+                      ]
+                    })}>+ Add Education</button>
                   </div>
                   {tempProfile.qualifications.map((q, idx) => (
                     <div key={idx} className="list-edit-item bg-slate rounded-lg mb-4 p-4">
@@ -459,7 +465,13 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 <div className="edit-section mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="section-subtitle">Work Experience History</h4>
-                    <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({...tempProfile, work_history: [...tempProfile.work_history, {role: '', company: '', duration: ''}]})}>+ Add</button>
+                    <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({
+                      ...tempProfile, 
+                      work_history: [
+                        ...tempProfile.work_history, 
+                        { role: '', company: '', duration: '', custom_role: '', custom_company: '' }
+                      ]
+                    })}>+ Add Experience</button>
                   </div>
                   {tempProfile.work_history.map((w, idx) => (
                     <div key={idx} className="list-edit-item p-4 bg-slate rounded-lg mb-4">
