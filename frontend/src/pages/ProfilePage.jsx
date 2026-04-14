@@ -3,7 +3,17 @@ import React, { useState } from 'react';
 const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) => {
   const [activeCategory, setActiveCategory] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
+  const [tempProfile, setTempProfile] = useState(null);
   const fileInputRef = React.useRef(null);
+
+  const startEditing = () => {
+    setTempProfile({
+      ...profile,
+      qualifications: profile.qualifications || [],
+      work_history: profile.work_history || []
+    });
+    setIsEditing(true);
+  };
 
   const profile = profileData || {
     name: user.name || 'User',
@@ -281,7 +291,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               </div>
             </div>
             <div className="profile-actions">
-              <button className="btn btn-primary" onClick={() => setIsEditing(true)}>Edit Profile</button>
+              <button className="btn btn-primary" onClick={startEditing}>Edit Profile</button>
               <button className="btn btn-outline" onClick={onBack}>Back to Home</button>
             </div>
           </div>
@@ -327,91 +337,127 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         </div>
 
         {/* Edit Profile Modal */}
-        {isEditing && (
+        {isEditing && tempProfile && (
           <div className="modal-overlay">
-            <div className="edit-modal animate-slide-up">
-              <div className="flex justify-between items-center mb-6">
-                <h2>Edit Professional Profile</h2>
+            <div className="edit-modal animate-slide-up" style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div className="flex justify-between items-center mb-6 sticky-header">
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-color)' }}>Edit Professional Profile</h2>
                 <button className="close-btn" onClick={() => setIsEditing(false)}>✕</button>
               </div>
               
-              <div className="edit-form-grid">
-                <div className="form-group">
-                  <label>Full Name</label>
-                  <input type="text" defaultValue={profile.name} id="edit-name" />
+              <div className="edit-sections-container">
+                {/* Basic Info */}
+                <div className="edit-section mb-8">
+                  <h4 className="section-subtitle">Basic Information</h4>
+                  <div className="edit-form-grid">
+                    <div className="form-group">
+                      <label>Full Name</label>
+                      <input type="text" value={tempProfile.name} onChange={e => setTempProfile({...tempProfile, name: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label>Mobile Number</label>
+                      <input type="text" value={tempProfile.mobile || ''} onChange={e => setTempProfile({...tempProfile, mobile: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label>Industry Focus</label>
+                      <input type="text" value={tempProfile.industry} onChange={e => setTempProfile({...tempProfile, industry: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label>Total Experience</label>
+                      <input type="text" value={tempProfile.years_of_experience} onChange={e => setTempProfile({...tempProfile, years_of_experience: e.target.value})} />
+                    </div>
+                    <div className="form-group full-width">
+                      <label>Professional Bio</label>
+                      <textarea rows="3" value={tempProfile.bio} onChange={e => setTempProfile({...tempProfile, bio: e.target.value})}></textarea>
+                    </div>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Email ID (Read-only)</label>
-                  <input type="text" value={user.email} disabled className="disabled-input" />
-                  <span className="small text-secondary">Email cannot be changed for security.</span>
+
+                {/* Qualifications List */}
+                <div className="edit-section mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="section-subtitle">Education & Qualifications</h4>
+                    <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({...tempProfile, qualifications: [...tempProfile.qualifications, {degree: '', institute: ''}]})}>+ Add</button>
+                  </div>
+                  {tempProfile.qualifications.map((q, idx) => (
+                    <div key={idx} className="list-edit-item flex gap-4 mb-3 items-end p-3 bg-slate rounded-lg">
+                      <div className="form-group flex-1">
+                        <label className="tiny-label">Degree</label>
+                        <input type="text" value={q.degree} onChange={e => {
+                          const newQuals = [...tempProfile.qualifications];
+                          newQuals[idx].degree = e.target.value;
+                          setTempProfile({...tempProfile, qualifications: newQuals});
+                        }} placeholder="e.g. B.Tech" />
+                      </div>
+                      <div className="form-group flex-1">
+                        <label className="tiny-label">Institute</label>
+                        <input type="text" value={q.institute} onChange={e => {
+                          const newQuals = [...tempProfile.qualifications];
+                          newQuals[idx].institute = e.target.value;
+                          setTempProfile({...tempProfile, qualifications: newQuals});
+                        }} placeholder="e.g. IIT Delhi" />
+                      </div>
+                      <button className="btn btn-danger-outline btn-sm" onClick={() => {
+                        setTempProfile({...tempProfile, qualifications: tempProfile.qualifications.filter((_, i) => i !== idx)});
+                      }}>✕</button>
+                    </div>
+                  ))}
                 </div>
-                <div className="form-group">
-                  <label>Industry</label>
-                  <input type="text" defaultValue={profile.industry} id="edit-industry" />
-                </div>
-                <div className="form-group">
-                  <label>Experience</label>
-                  <input type="text" defaultValue={profile.years_of_experience} id="edit-exp" />
-                </div>
-                <div className="form-group">
-                  <label>Qualifications</label>
-                  <input type="text" defaultValue={profile.qualifications} id="edit-qual" />
-                </div>
-                <div className="form-group">
-                  <label>Mobile No.</label>
-                  <input type="text" defaultValue={profile.mobile} id="edit-mobile" />
-                </div>
-                <div className="form-group full-width">
-                  <label>Professional Bio</label>
-                  <textarea rows="4" defaultValue={profile.bio} id="edit-bio"></textarea>
+
+                {/* Experience List */}
+                <div className="edit-section mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="section-subtitle">Work Experience History</h4>
+                    <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({...tempProfile, work_history: [...tempProfile.work_history, {role: '', company: '', duration: ''}]})}>+ Add</button>
+                  </div>
+                  {tempProfile.work_history.map((w, idx) => (
+                    <div key={idx} className="list-edit-item p-4 bg-slate rounded-lg mb-4">
+                      <div className="flex gap-4 mb-3">
+                        <div className="form-group flex-1">
+                          <label className="tiny-label">Role / Designation</label>
+                          <input type="text" value={w.role} onChange={e => {
+                            const newWork = [...tempProfile.work_history];
+                            newWork[idx].role = e.target.value;
+                            setTempProfile({...tempProfile, work_history: newWork});
+                          }} />
+                        </div>
+                        <div className="form-group flex-1">
+                          <label className="tiny-label">Company</label>
+                          <input type="text" value={w.company} onChange={e => {
+                            const newWork = [...tempProfile.work_history];
+                            newWork[idx].company = e.target.value;
+                            setTempProfile({...tempProfile, work_history: newWork});
+                          }} />
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-end">
+                        <div className="form-group flex-1">
+                          <label className="tiny-label">Duration (Years)</label>
+                          <input type="text" value={w.duration} onChange={e => {
+                            const newWork = [...tempProfile.work_history];
+                            newWork[idx].duration = e.target.value;
+                            setTempProfile({...tempProfile, work_history: newWork});
+                          }} placeholder="2015 - 2024" />
+                        </div>
+                        <button className="btn btn-danger-outline btn-sm ms-4 mb-1" onClick={() => {
+                          setTempProfile({...tempProfile, work_history: tempProfile.work_history.filter((_, i) => i !== idx)});
+                        }}>Remove Experience</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="edit-list-sections mt-6">
-                <h4 className="small font-bold text-primary mb-2">Qualifications (Comma separated: Degree|Institute, ...)</h4>
-                <textarea 
-                  className="form-control mb-4" 
-                  rows="2" 
-                  id="edit-quals-list" 
-                  defaultValue={(profile.qualifications || []).map(q => `${q.degree}|${q.institute}`).join(', ')} 
-                />
-                
-                <h4 className="small font-bold text-primary mb-2">Work History (Comma separated: Role|Company|Year, ...)</h4>
-                <textarea 
-                  className="form-control" 
-                  rows="3" 
-                  id="edit-work-list" 
-                  defaultValue={(profile.work_history || []).map(w => `${w.role}|${w.company}|${w.duration}`).join(', ')} 
-                />
-              </div>
-
-              <div className="flex gap-4 mt-8">
+              <div className="flex gap-4 mt-8 sticky-footer">
                 <button 
-                  className="btn btn-primary flex-1" 
+                  className="btn btn-primary flex-1 p-4" 
                   onClick={() => {
-                    const qualRaw = document.getElementById('edit-quals-list').value;
-                    const workRaw = document.getElementById('edit-work-list').value;
-                    
-                    const updated = {
-                      name: document.getElementById('edit-name').value,
-                      industry: document.getElementById('edit-industry').value,
-                      years_of_experience: document.getElementById('edit-exp').value,
-                      mobile: document.getElementById('edit-mobile').value,
-                      bio: document.getElementById('edit-bio').value,
-                      qualifications: qualRaw.split(',').filter(s => s.includes('|')).map(s => {
-                        const [degree, institute] = s.split('|').map(p => p.trim());
-                        return { degree, institute };
-                      }),
-                      work_history: workRaw.split(',').filter(s => s.includes('|')).map(s => {
-                        const [role, company, duration] = s.split('|').map(p => p.trim());
-                        return { role, company, duration };
-                      })
-                    };
-                    onUpdateProfile(updated);
+                    onUpdateProfile(tempProfile);
                     setIsEditing(false);
                   }}
+                  style={{ fontSize: '1.1rem', fontWeight: 600 }}
                 >
-                  Save Changes
+                  Save Professional Profile
                 </button>
                 <button className="btn btn-outline" onClick={() => setIsEditing(false)}>Cancel</button>
               </div>
@@ -763,6 +809,54 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .disabled-input { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
         .close-btn:hover { color: #0f172a; }
+
+        .section-subtitle {
+          font-size: 0.9rem;
+          color: var(--primary-color);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-weight: 700;
+          margin-bottom: 1rem;
+          border-bottom: 2px solid #eff6ff;
+          padding-bottom: 0.5rem;
+        }
+
+        .tiny-label {
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          margin-bottom: 0.25rem;
+          display: block;
+        }
+
+        .edit-modal input, .edit-modal textarea {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          font-family: inherit;
+        }
+
+        .sticky-header {
+          position: sticky;
+          top: 0;
+          background: white;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid #f1f5f9;
+          margin-top: -1rem;
+          z-index: 10;
+        }
+
+        .sticky-footer {
+          position: sticky;
+          bottom: 0;
+          background: white;
+          padding-top: 1rem;
+          border-top: 1px solid #f1f5f9;
+          margin-bottom: -1rem;
+          z-index: 10;
+        }
 
         @keyframes slide-up {
           from { opacity: 0; transform: translateY(20px); }
