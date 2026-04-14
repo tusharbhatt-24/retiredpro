@@ -1,0 +1,127 @@
+/**
+ * Professional Data Constants for RetirePro
+ * Focuses on high-level sectors, senior designations, and top institutions.
+ */
+
+export const INDUSTRIES = [
+  "Information Technology (IT) Software",
+  "Banking & Financial Services (BFSI)",
+  "Healthcare & Medical Services",
+  "Manufacturing (Industrial/Automotive)",
+  "Logistics, Transportation & Supply Chain",
+  "Retail & Consumer Goods",
+  "Energy, Oil & Utilities",
+  "Construction & Civil Engineering",
+  "Education & EdTech",
+  "Aeronautics & Defense",
+  "Pharmaceuticals & Biotech",
+  "Government & Public Sector",
+  "Management Consulting",
+  "Media, Entertainment & Communications",
+  "Real Estate & Infrastructure",
+  "Non-Profit & Social impact",
+  "Hospitality & Tourism",
+  "Legal Services",
+  "Agriculture & Food Tech",
+  "Telecommunications"
+];
+
+export const TOP_INSTITUTES = [
+  "Indian Institute of Science (IISc), Bangalore",
+  "IIT Bombay",
+  "IIT Delhi",
+  "IIT Madras",
+  "IIT Kanpur",
+  "IIT Kharagpur",
+  "IIT Roorkee",
+  "IIM Ahmedabad",
+  "IIM Bangalore",
+  "IIM Calcutta",
+  "IIM Lucknow",
+  "Massachusetts Institute of Technology (MIT)",
+  "Stanford University",
+  "Harvard University",
+  "University of Oxford",
+  "University of Cambridge",
+  "National University of Singapore (NUS)",
+  "ISB (Indian School of Business)",
+  "XLRI - Xavier School of Management",
+  "BITS Pilani",
+  "University of Delhi",
+  "Jawaharlal Nehru University (JNU)",
+  "Vellore Institute of Technology (VIT)",
+  "London School of Economics (LSE)",
+  "INSEAD",
+  "Wharton School of the University of Pennsylvania"
+];
+
+export const SENIOR_DESIGNATIONS = [
+  "Chief Executive Officer (CEO)",
+  "Chief Operating Officer (COO)",
+  "Chief Financial Officer (CFO)",
+  "Chief Technology Officer (CTO)",
+  "Chief Product Officer (CPO)",
+  "Chief Marketing Officer (CMO)",
+  "Chief Information Officer (CIO)",
+  "Chief Human Resources Officer (CHRO)",
+  "Chief Strategy Officer (CSO)",
+  "Managing Director (MD)",
+  "President",
+  "Executive Vice President (EVP)",
+  "Senior Vice President (SVP)",
+  "Vice President (VP)",
+  "General Manager (GM)",
+  "Director of Operations",
+  "Regional Head",
+  "Senior Consultant",
+  "Advisor / Board Member",
+  "Principal Architect",
+  "Country Manager"
+];
+
+export const MAJOR_COMPANIES = [
+  "Google (Alphabet)",
+  "Microsoft",
+  "Amazon",
+  "Apple",
+  "Meta (Facebook)",
+  "Tata Consultancy Services (TCS)",
+  "Reliance Industries",
+  "Infosys",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Larsen & Toubro (L&T)",
+  "Nvidia",
+  "Tesla",
+  "Toyota Motor",
+  "Walmart",
+  "JPMorgan Chase",
+  "SAMSUNG Electronics",
+  "Oracle",
+  "IBM",
+  "Accenture",
+  "Deloitte",
+  "McKinsey & Company",
+  "Coca-Cola",
+  "PepsiCo",
+  "Unilever"
+];
+
+export const DEGREES = [
+  "MBA / PGDM",
+  "Ph.D / Doctorate",
+  "M.Tech / M.E.",
+  "M.S. (Master of Science)",
+  "B.Tech / B.E.",
+  "B.S. (Bachelor of Science)",
+  "M.A. (Master of Arts)",
+  "B.A. (Bachelor of Arts)",
+  "M.Com (Master of Commerce)",
+  "B.Com (Bachelor of Commerce)",
+  "Chartered Accountant (CA)",
+  "CFA Charterholder",
+  "Post Graduate Diploma",
+  "Exec-MBA",
+  "LL.M (Master of Laws)",
+  "LL.B (Bachelor of Laws)"
+];

@@ -5,6 +5,7 @@ import ChatBot from './chatbot/ChatBot';
 import AuthPage from './AuthPage';
 import AuthSuccess from './pages/AuthSuccess';
 import ProfilePage from './pages/ProfilePage';
+import { INDUSTRIES, TOP_INSTITUTES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from './utils/constants';
 
 // ─── Onboarding Component ──────────────────────────────────────────────────
 function OnboardingScreen({ user, onComplete, onSkip }) {
@@ -131,19 +132,25 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
               <div key={idx} className="flex gap-4 mb-4 items-end">
                 <div className="form-group flex-1">
                   <label className="small font-bold">Degree / Certificate</label>
-                  <input type="text" className="form-control" value={q.degree} onChange={e => {
+                  <input type="text" className="form-control" list="degree-list" value={q.degree} onChange={e => {
                     const newQuals = [...editData.qualifications];
                     newQuals[idx].degree = e.target.value;
                     setEditData({...editData, qualifications: newQuals});
-                  }} />
+                  }} placeholder="Select or type degree..." />
+                  <datalist id="degree-list">
+                    {DEGREES.map(d => <option key={d} value={d} />)}
+                  </datalist>
                 </div>
                 <div className="form-group flex-1">
                   <label className="small font-bold">Institution</label>
-                  <input type="text" className="form-control" value={q.institute} onChange={e => {
+                  <input type="text" className="form-control" list="institute-list" value={q.institute} onChange={e => {
                     const newQuals = [...editData.qualifications];
                     newQuals[idx].institute = e.target.value;
                     setEditData({...editData, qualifications: newQuals});
-                  }} />
+                  }} placeholder="Select or type institute..." />
+                  <datalist id="institute-list">
+                    {TOP_INSTITUTES.map(inst => <option key={inst} value={inst} />)}
+                  </datalist>
                 </div>
                 {editData.qualifications.length > 1 && (
                   <button className="btn btn-danger-outline btn-sm mb-1" onClick={() => {
@@ -160,19 +167,25 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 <div className="flex gap-4 mb-2">
                   <div className="form-group flex-1">
                     <label className="small font-bold">Company</label>
-                    <input type="text" className="form-control" value={w.company} onChange={e => {
+                    <input type="text" className="form-control" list="company-list" value={w.company} onChange={e => {
                       const newWork = [...editData.work_history];
                       newWork[idx].company = e.target.value;
                       setEditData({...editData, work_history: newWork});
-                    }} />
+                    }} placeholder="Select or type company..." />
+                    <datalist id="company-list">
+                      {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}
+                    </datalist>
                   </div>
                   <div className="form-group flex-1">
                     <label className="small font-bold">Designation</label>
-                    <input type="text" className="form-control" value={w.role} onChange={e => {
+                    <input type="text" className="form-control" list="designation-list" value={w.role} onChange={e => {
                       const newWork = [...editData.work_history];
                       newWork[idx].role = e.target.value;
                       setEditData({...editData, work_history: newWork});
-                    }} />
+                    }} placeholder="Select or type role..." />
+                    <datalist id="designation-list">
+                      {SENIOR_DESIGNATIONS.map(d => <option key={d} value={d} />)}
+                    </datalist>
                   </div>
                 </div>
                 <div className="flex gap-4 items-center">
@@ -197,7 +210,10 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             <div className="flex gap-4">
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Industry Focus</label>
-                <input type="text" className="form-control" value={editData.industry} onChange={e => setEditData({...editData, industry: e.target.value})} />
+                <input type="text" className="form-control" list="industry-list" value={editData.industry} onChange={e => setEditData({...editData, industry: e.target.value})} placeholder="Select or type industry..." />
+                <datalist id="industry-list">
+                  {INDUSTRIES.map(i => <option key={i} value={i} />)}
+                </datalist>
               </div>
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Location</label>
@@ -207,7 +223,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
 
             <div className="form-group">
               <label className="small font-bold text-primary">Target Designation / Expertise</label>
-              <input type="text" className="form-control" value={editData.ex_designation} onChange={e => setEditData({...editData, ex_designation: e.target.value})} placeholder="e.g. Senior Logistics Advisor" />
+              <input type="text" className="form-control" list="designation-list" value={editData.ex_designation} onChange={e => setEditData({...editData, ex_designation: e.target.value})} placeholder="e.g. Senior Logistics Advisor" />
             </div>
 
             <div className="form-group">

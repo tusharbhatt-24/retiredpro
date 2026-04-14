@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { INDUSTRIES, TOP_INSTITUTES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from '../utils/constants';
 
 const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) => {
   const [activeCategory, setActiveCategory] = useState('overview');
@@ -360,7 +361,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     </div>
                     <div className="form-group">
                       <label>Industry Focus</label>
-                      <input type="text" value={tempProfile.industry} onChange={e => setTempProfile({...tempProfile, industry: e.target.value})} />
+                      <input type="text" list="industry-list" value={tempProfile.industry} onChange={e => setTempProfile({...tempProfile, industry: e.target.value})} />
+                      <datalist id="industry-list">
+                        {INDUSTRIES.map(i => <option key={i} value={i} />)}
+                      </datalist>
                     </div>
                     <div className="form-group">
                       <label>Total Experience</label>
@@ -383,19 +387,25 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     <div key={idx} className="list-edit-item flex gap-4 mb-3 items-end p-3 bg-slate rounded-lg">
                       <div className="form-group flex-1">
                         <label className="tiny-label">Degree</label>
-                        <input type="text" value={q.degree} onChange={e => {
+                        <input type="text" list="degree-list" value={q.degree} onChange={e => {
                           const newQuals = [...tempProfile.qualifications];
                           newQuals[idx].degree = e.target.value;
                           setTempProfile({...tempProfile, qualifications: newQuals});
                         }} placeholder="e.g. B.Tech" />
+                        <datalist id="degree-list">
+                          {DEGREES.map(d => <option key={d} value={d} />)}
+                        </datalist>
                       </div>
                       <div className="form-group flex-1">
                         <label className="tiny-label">Institute</label>
-                        <input type="text" value={q.institute} onChange={e => {
+                        <input type="text" list="institute-list" value={q.institute} onChange={e => {
                           const newQuals = [...tempProfile.qualifications];
                           newQuals[idx].institute = e.target.value;
                           setTempProfile({...tempProfile, qualifications: newQuals});
                         }} placeholder="e.g. IIT Delhi" />
+                        <datalist id="institute-list">
+                          {TOP_INSTITUTES.map(inst => <option key={inst} value={inst} />)}
+                        </datalist>
                       </div>
                       <button className="btn btn-danger-outline btn-sm" onClick={() => {
                         setTempProfile({...tempProfile, qualifications: tempProfile.qualifications.filter((_, i) => i !== idx)});
@@ -415,19 +425,25 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                       <div className="flex gap-4 mb-3">
                         <div className="form-group flex-1">
                           <label className="tiny-label">Role / Designation</label>
-                          <input type="text" value={w.role} onChange={e => {
+                          <input type="text" list="designation-list" value={w.role} onChange={e => {
                             const newWork = [...tempProfile.work_history];
                             newWork[idx].role = e.target.value;
                             setTempProfile({...tempProfile, work_history: newWork});
                           }} />
+                          <datalist id="designation-list">
+                            {SENIOR_DESIGNATIONS.map(d => <option key={d} value={d} />)}
+                          </datalist>
                         </div>
                         <div className="form-group flex-1">
                           <label className="tiny-label">Company</label>
-                          <input type="text" value={w.company} onChange={e => {
+                          <input type="text" list="company-list" value={w.company} onChange={e => {
                             const newWork = [...tempProfile.work_history];
                             newWork[idx].company = e.target.value;
                             setTempProfile({...tempProfile, work_history: newWork});
                           }} />
+                          <datalist id="company-list">
+                            {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}
+                          </datalist>
                         </div>
                       </div>
                       <div className="flex justify-between items-end">
