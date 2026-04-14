@@ -1,6 +1,138 @@
 import { useState, useRef, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './index.css';
+
+// ─── Onboarding Component ──────────────────────────────────────────────────
+function OnboardingScreen({ user, onComplete, onSkip }) {
+  const [isParsing, setIsParsing] = useState(false);
+  const [parsingProgress, setParsingProgress] = useState(0);
+
+  const handleResumeUpload = () => {
+    setIsParsing(true);
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      setParsingProgress(progress);
+      if (progress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          onComplete();
+        }, 500);
+      }
+    }, 300);
+  };
+
+  return (
+    <div className="onboarding-container animate-fade-in">
+      <div className="onboarding-card">
+        <div className="onboarding-header">
+          <div className="step-badge">Welcome, {user.name.split(' ')[0]}!</div>
+          <h2>Let's build your expert profile</h2>
+          <p>Quickly populate your profile by uploading your resume, or start from scratch.</p>
+        </div>
+
+        <div className="onboarding-options">
+          <div className="option-card upload" onClick={!isParsing ? handleResumeUpload : undefined}>
+            {isParsing ? (
+              <div className="parsing-loader">
+                <div className="spinner"></div>
+                <h4>Analyzing Resume...</h4>
+                <div className="progress-bar-bg mt-4" style={{ width: '100%' }}>
+                  <div className="progress-bar-fill" style={{ width: `${parsingProgress}%` }}></div>
+                </div>
+                <p className="small text-secondary mt-2">Extracting expertise, years, and skills...</p>
+              </div>
+            ) : (
+              <>
+                <div className="option-icon">📄</div>
+                <h3>Upload Resume</h3>
+                <p>We'll use AI to extract your career milestones and skills.</p>
+                <button className="btn btn-primary mt-4">Select PDF/DOCX</button>
+              </>
+            )}
+          </div>
+
+          <div className="option-card skip" onClick={onSkip}>
+            <div className="option-icon">✍️</div>
+            <h3>Skip for Now</h3>
+            <p>You can manually fill in your details later in your profile.</p>
+            <button className="btn btn-outline mt-4">Start Manually</button>
+          </div>
+        </div>
+      </div>
+      <style jsx="true">{`
+        .onboarding-container {
+          min-height: 80vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+          background-color: #f8fafc;
+        }
+        .onboarding-card {
+          background: white;
+          padding: 3rem;
+          border-radius: 24px;
+          box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+          max-width: 900px;
+          width: 100%;
+          text-align: center;
+        }
+        .step-badge {
+          background: #eff6ff;
+          color: #2563eb;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-weight: 700;
+          display: inline-block;
+          margin-bottom: 1rem;
+        }
+        .onboarding-options {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+          margin-top: 3rem;
+        }
+        .option-card {
+          padding: 2.5rem;
+          border: 2px solid #f1f5f9;
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .option-card:hover {
+          border-color: #2563eb;
+          transform: translateY(-5px);
+          box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+        }
+        .option-icon {
+          font-size: 3rem;
+          margin-bottom: 1.5rem;
+        }
+        .parsing-loader {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #2563eb;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+}
+
 import ChatBot from './chatbot/ChatBot';
 import AuthPage from './AuthPage';
 import AuthSuccess from './pages/AuthSuccess';
@@ -1059,6 +1191,9 @@ function App() {
 
   const handleAuthSuccess = (data) => {
     setAuthData(data);
+    if (data.user.isNewUser) {
+      setActiveView('onboarding');
+    }
   };
 
   const handleLogout = () => {
@@ -1167,7 +1302,16 @@ function App() {
         </nav>
 
         {/* Conditional Rendering for Both Roles */}
-        {userRole === 'Company' ? (
+        {activeView === 'onboarding' ? (
+          <OnboardingScreen 
+            user={authData.user} 
+            onComplete={() => {
+              // Mark onboarding as complete locally and go to profile
+              setActiveView('profile');
+            }}
+            onSkip={() => setActiveView('home')}
+          />
+        ) : userRole === 'Company' ? (
           activeView === 'home' ? <CompanyHome /> : 
           activeView === 'verification' ? <CompanySignup /> :
           <ProfilePage user={authData.user} userRole={userRole} onBack={() => setActiveView('home')} />

@@ -64,6 +64,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             role: 'professional'
           }
         });
+        user.wasJustCreated = true;
       }
       return done(null, user);
     } catch (err) {
@@ -97,6 +98,7 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
             role: 'professional'
           }
         });
+        user.wasJustCreated = true;
       }
       return done(null, user);
     } catch (err) {
