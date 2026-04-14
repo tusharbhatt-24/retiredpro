@@ -18,7 +18,7 @@ router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
     const token = generateToken(req.user);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
     res.redirect(`${frontendUrl}/auth-success?token=${token}`);
   }
 );
@@ -30,7 +30,7 @@ router.get('/linkedin/callback',
   passport.authenticate('linkedin', { failureRedirect: '/login' }),
   (req, res) => {
     const token = generateToken(req.user);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
     res.redirect(`${frontendUrl}/auth-success?token=${token}`);
   }
 );

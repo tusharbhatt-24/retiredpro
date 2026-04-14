@@ -74,7 +74,7 @@ const LOCATION_DATA = {
   'Germany': ['Berlin', 'Hamburg', 'Munich', 'Cologne', 'Frankfurt', 'Stuttgart', 'Düsseldorf', 'Dortmund', 'Essen', 'Leipzig']
 };
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5050';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 function ProfessionalSignup() {
   const [step, setStep] = useState(1);
