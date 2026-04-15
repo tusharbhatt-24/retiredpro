@@ -5,13 +5,13 @@ const { PrismaClient } = require('@prisma/client');
 
 let prisma;
 try {
-  prisma = new PrismaClient({
-    datasourceUrl: process.env.DATABASE_URL || "postgresql://mock:mock@localhost:5432/mock"
-  });
+  if (process.env.DATABASE_URL) {
+    prisma = new PrismaClient();
+  } else {
+    throw new Error("No DATABASE_URL");
+  }
 } catch (e) {
-  console.log("Prisma skipping initialization in passport.js until DB URL is added.");
-}
-
+  console.log("Prisma skipping initialization in passport.js using MOCK instead.");
   prisma = {
     user: {
       findUnique: async ({ where }) => {
@@ -23,6 +23,7 @@ try {
       update: async ({ where, data }) => ({ ...where, ...data })
     }
   };
+}
 
 passport.serializeUser((user, done) => {
   done(null, user.id);

@@ -180,6 +180,38 @@ export default function AuthPage({ onAuthSuccess }) {
                 <span>── or ──</span>
               </div>
 
+              {/* Development Bypass */}
+              <button
+                type="button"
+                className="auth-submit-btn"
+                style={{ 
+                  backgroundColor: '#f8fafc', 
+                  color: '#475569', 
+                  border: '1px dashed #cbd5e1',
+                  marginBottom: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+                onClick={() => {
+                  const mockUser = { 
+                    id: 'mock_user_123', 
+                    name: 'Tushar Bhatt', 
+                    email: 'tushar@example.com', 
+                    provider: 'mock',
+                    isNewUser: false 
+                  };
+                  const mockToken = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })) + '.' + btoa(JSON.stringify(mockUser)) + '.mock_signature';
+                  localStorage.setItem('token', mockToken);
+                  localStorage.setItem('rp_token', mockToken);
+                  onAuthSuccess({ token: mockToken, user: mockUser });
+                }}
+                id="dev-bypass-login"
+              >
+                <span>⚡</span> Bypass Auth (Dev Mode)
+              </button>
+
               {/* ── Email Form ────────────────────────────────────────────── */}
               <form onSubmit={handleEmailAuth} className="auth-form">
                 {mode === 'signup' && (

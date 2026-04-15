@@ -14,6 +14,9 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
   const [isReviewing, setIsReviewing] = useState(false);
   const [isManual, setIsManual] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isMobileVerified, setIsMobileVerified] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleResumeClick = () => {
@@ -49,12 +52,12 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             bio: 'A visionary supply chain leader with over 3 decades of experience in navigating complex global logistics networks for Fortune 500 companies.',
             location: 'Mumbai, India',
             qualifications: [
-              { degree: 'MBA in Operations', institute: 'IIM Bangalore' },
-              { degree: 'B.Tech in Mechanical Engineering', institute: 'IIT Delhi' }
+              { degree: 'MBA / PGDM', university: 'Indian Institute of Management (IIM)', institute: 'IIM Bangalore', custom_degree: '', custom_university: '', custom_institute: '' },
+              { degree: 'B.Tech / B.E.', university: 'Indian Institute of Technology (IIT)', institute: 'IIT Delhi', custom_degree: '', custom_university: '', custom_institute: '' }
             ],
             work_history: [
-              { company: 'Global Logistics Solutions Inc.', role: 'Senior VP of Operations', duration: '2010 - 2024' },
-              { company: 'Aerospace International', role: 'Director of Logistics', duration: '2000 - 2010' }
+              { company: 'Google (Alphabet)', role: 'Senior Vice President (SVP)', duration: '2010 - 2024', custom_company: '', custom_role: '' },
+              { company: 'Microsoft', role: 'Director of Operations', duration: '2000 - 2010', custom_company: '', custom_role: '' }
             ]
           });
         }, 800);
@@ -67,7 +70,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
       name: user.name || '',
       gender: 'Male',
       dob: '',
-      mobile: '',
+      mobile: '+91 ',
       industry: '',
       years_of_experience: '',
       expertise: '',
@@ -77,6 +80,9 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
       qualifications: [{ degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }],
       work_history: [{ company: '', role: '', duration: '', custom_company: '', custom_role: '' }]
     });
+    setIsMobileVerified(false);
+    setOtpSent(false);
+    setOtpCode('');
     setIsManual(true);
     setIsReviewing(true);
   };
@@ -90,21 +96,21 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             {!isManual && <span className="badge badge-success">Extraction Complete ⚡</span>}
           </div>
           <p className="text-secondary mb-8">
-            {isManual 
-              ? 'Please fill in your professional details to set up your expert profile.' 
+            {isManual
+              ? 'Please fill in your professional details to set up your expert profile.'
               : "We've pre-filled your profile using your resume. **Does this look correct?**"}
           </p>
-          
+
           <div className="review-grid">
             <div className="form-group">
               <label className="small font-bold text-primary">Full Name</label>
-              <input type="text" className="form-control" value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="e.g. John Doe" />
+              <input type="text" className="form-control" value={editData.name} onChange={e => setEditData({ ...editData, name: e.target.value })} placeholder="e.g. John Doe" />
             </div>
 
             <div className="flex gap-4">
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Gender</label>
-                <select className="form-control" value={editData.gender} onChange={e => setEditData({...editData, gender: e.target.value})}>
+                <select className="form-control" value={editData.gender} onChange={e => setEditData({ ...editData, gender: e.target.value })}>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -112,18 +118,76 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
               </div>
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Mobile No.</label>
-                <input type="text" className="form-control" value={editData.mobile} onChange={e => setEditData({...editData, mobile: e.target.value})} />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    className={`form-control ${isMobileVerified ? 'border-success' : ''}`}
+                    value={editData.mobile}
+                    onChange={e => {
+                      let val = e.target.value;
+                      if (!val.startsWith('+91 ')) val = '+91 ';
+                      const digits = val.slice(4).replace(/\D/g, '');
+                      if (digits.length <= 10) {
+                        setEditData({ ...editData, mobile: '+91 ' + digits });
+                        setIsMobileVerified(false);
+                      }
+                    }}
+                  />
+                  {!isMobileVerified && (
+                    <button
+                      className="btn btn-outline btn-xs"
+                      style={{ minWidth: '80px' }}
+                      onClick={() => {
+                        if (editData.mobile.length === 14) {
+                          setOtpSent(true);
+                          alert('OTP sent to ' + editData.mobile + ' (Mock: 1234)');
+                        } else {
+                          alert('Please enter a valid 10-digit number');
+                        }
+                      }}
+                    >
+                      {otpSent ? 'Resend' : 'Get OTP'}
+                    </button>
+                  )}
+                </div>
+                {otpSent && !isMobileVerified && (
+                  <div className="flex gap-2 mt-2 animate-fade-in">
+                    <input
+                      type="text"
+                      placeholder="Enter OTP"
+                      className="form-control"
+                      style={{ maxWidth: '100px' }}
+                      value={otpCode}
+                      onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    />
+                    <button
+                      className="btn btn-primary btn-xs"
+                      onClick={() => {
+                        if (otpCode === '1234') {
+                          setIsMobileVerified(true);
+                          setOtpSent(false);
+                          alert('Mobile verified successfully!');
+                        } else {
+                          alert('Invalid OTP. Use 1234');
+                        }
+                      }}
+                    >
+                      Verify
+                    </button>
+                  </div>
+                )}
+                {isMobileVerified && <div className="text-success tiny-label mt-1">✓ Verified</div>}
               </div>
             </div>
 
             <div className="flex gap-4">
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Date of Birth</label>
-                <input type="date" className="form-control" value={editData.dob} onChange={e => setEditData({...editData, dob: e.target.value})} />
+                <input type="date" className="form-control" value={editData.dob} onChange={e => setEditData({ ...editData, dob: e.target.value })} />
               </div>
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Years of Experience</label>
-                <input type="text" className="form-control" value={editData.years_of_experience} onChange={e => setEditData({...editData, years_of_experience: e.target.value})} />
+                <input type="text" className="form-control" value={editData.years_of_experience} onChange={e => setEditData({ ...editData, years_of_experience: e.target.value })} />
               </div>
             </div>
 
@@ -137,7 +201,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                       const newQuals = [...editData.qualifications];
                       newQuals[idx].degree = e.target.value;
                       if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_degree = '';
-                      setEditData({...editData, qualifications: newQuals});
+                      setEditData({ ...editData, qualifications: newQuals });
                     }} placeholder="e.g. B.Tech" />
                   </div>
                   <div className="form-group">
@@ -147,8 +211,8 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                       newQuals[idx].university = e.target.value;
                       if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_university = '';
                       // Reset institute if university changes
-                      newQuals[idx].institute = ''; 
-                      setEditData({...editData, qualifications: newQuals});
+                      newQuals[idx].institute = '';
+                      setEditData({ ...editData, qualifications: newQuals });
                     }} placeholder="e.g. AKTU / IPU" />
                   </div>
                   <div className="form-group">
@@ -156,7 +220,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                       <label className="tiny-label font-bold">3. Affiliated College</label>
                       {editData.qualifications.length > 1 && (
                         <button className="btn btn-danger-outline btn-xs" style={{ padding: '2px 6px', fontSize: '0.6rem' }} onClick={() => {
-                          setEditData({...editData, qualifications: editData.qualifications.filter((_, i) => i !== idx)});
+                          setEditData({ ...editData, qualifications: editData.qualifications.filter((_, i) => i !== idx) });
                         }}>✕</button>
                       )}
                     </div>
@@ -164,7 +228,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                       const newQuals = [...editData.qualifications];
                       newQuals[idx].institute = e.target.value;
                       if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_institute = '';
-                      setEditData({...editData, qualifications: newQuals});
+                      setEditData({ ...editData, qualifications: newQuals });
                     }} placeholder="Select college..." />
                     <datalist id={`college-list-${idx}`}>
                       {(AFFILIATED_COLLEGES[q.university] || []).map(c => <option key={c} value={c} />)}
@@ -181,21 +245,21 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                         <input type="text" className="form-control text-xs" value={q.custom_degree || ''} onChange={e => {
                           const newQuals = [...editData.qualifications];
                           newQuals[idx].custom_degree = e.target.value;
-                          setEditData({...editData, qualifications: newQuals});
+                          setEditData({ ...editData, qualifications: newQuals });
                         }} placeholder="Actual Degree Name" />
                       )}
                       {q.university === 'Not Listed / Other' && (
                         <input type="text" className="form-control text-xs" value={q.custom_university || ''} onChange={e => {
                           const newQuals = [...editData.qualifications];
                           newQuals[idx].custom_university = e.target.value;
-                          setEditData({...editData, qualifications: newQuals});
+                          setEditData({ ...editData, qualifications: newQuals });
                         }} placeholder="Actual University Name" />
                       )}
                       {q.institute === 'Not Listed / Other' && (
                         <input type="text" className="form-control text-xs" value={q.custom_institute || ''} onChange={e => {
                           const newQuals = [...editData.qualifications];
                           newQuals[idx].custom_institute = e.target.value;
-                          setEditData({...editData, qualifications: newQuals});
+                          setEditData({ ...editData, qualifications: newQuals });
                         }} placeholder="Actual College Name" />
                       )}
                     </div>
@@ -203,18 +267,18 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 )}
               </div>
             ))}
-             <button 
-               className="btn btn-outline btn-sm mb-6" 
-               onClick={() => setEditData({
-                 ...editData, 
-                 qualifications: [
-                   ...editData.qualifications, 
-                   { degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }
-                 ]
-               })}
-             >
-               + Add Education
-             </button>
+            <button
+              className="btn btn-outline btn-sm mb-6"
+              onClick={() => setEditData({
+                ...editData,
+                qualifications: [
+                  ...editData.qualifications,
+                  { degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }
+                ]
+              })}
+            >
+              + Add Education
+            </button>
 
             <div className="section-divider mt-4 mb-4">Work Experience History</div>
             {editData.work_history.map((w, idx) => (
@@ -225,7 +289,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                     <input type="text" className="form-control" list="company-list" value={w.company} onChange={e => {
                       const newWork = [...editData.work_history];
                       newWork[idx].company = e.target.value;
-                      setEditData({...editData, work_history: newWork});
+                      setEditData({ ...editData, work_history: newWork });
                     }} placeholder="Select or type company..." />
                     <datalist id="company-list">
                       {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}
@@ -236,7 +300,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                     <input type="text" className="form-control" list="designation-list" value={w.role} onChange={e => {
                       const newWork = [...editData.work_history];
                       newWork[idx].role = e.target.value;
-                      setEditData({...editData, work_history: newWork});
+                      setEditData({ ...editData, work_history: newWork });
                     }} placeholder="Select or type role..." />
                     <datalist id="designation-list">
                       {SENIOR_DESIGNATIONS.map(d => <option key={d} value={d} />)}
@@ -249,101 +313,110 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                     <input type="text" className="form-control" value={w.duration} onChange={e => {
                       const newWork = [...editData.work_history];
                       newWork[idx].duration = e.target.value;
-                      setEditData({...editData, work_history: newWork});
+                      setEditData({ ...editData, work_history: newWork });
                     }} />
                   </div>
                   {editData.work_history.length > 1 && (
                     <button className="btn btn-danger-outline btn-sm mt-4" onClick={() => {
-                      setEditData({...editData, work_history: editData.work_history.filter((_, i) => i !== idx)});
+                      setEditData({ ...editData, work_history: editData.work_history.filter((_, i) => i !== idx) });
                     }}>Remove</button>
                   )}
                 </div>
+                {/* Manual Option for Company and Designation */}
+                {(w.company === 'Not Listed / Other' || w.role === 'Not Listed / Other') && (
+                  <div className="bg-white p-3 rounded border border-dashed border-primary mt-2">
+                    <p className="tiny-label text-primary font-bold mb-2">Custom Work Details</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {w.company === 'Not Listed / Other' && (
+                        <input type="text" className="form-control text-xs" value={w.custom_company || ''} onChange={e => {
+                          const newWork = [...editData.work_history];
+                          newWork[idx].custom_company = e.target.value;
+                          setEditData({ ...editData, work_history: newWork });
+                        }} placeholder="Actual Company Name" />
+                      )}
+                      {w.role === 'Not Listed / Other' && (
+                        <input type="text" className="form-control text-xs" value={w.custom_role || ''} onChange={e => {
+                          const newWork = [...editData.work_history];
+                          newWork[idx].custom_role = e.target.value;
+                          setEditData({ ...editData, work_history: newWork });
+                        }} placeholder="Actual Designation Name" />
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
-             <button 
-               className="btn btn-outline btn-sm mb-8" 
-               onClick={() => setEditData({
-                 ...editData, 
-                 work_history: [
-                   ...editData.work_history, 
-                   { company: '', role: '', duration: '', custom_company: '', custom_role: '' }
-                 ]
-               })}
-             >
-               + Add Work History
-             </button>
+            <button
+              className="btn btn-outline btn-sm mb-8"
+              onClick={() => setEditData({
+                ...editData,
+                work_history: [
+                  ...editData.work_history,
+                  { company: '', role: '', duration: '', custom_company: '', custom_role: '' }
+                ]
+              })}
+            >
+              + Add Work History
+            </button>
 
             <div className="flex gap-4">
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Industry Focus</label>
-                <input type="text" className="form-control" list="industry-list" value={editData.industry} onChange={e => setEditData({...editData, industry: e.target.value})} placeholder="Select or type industry..." />
-                <datalist id="industry-list">
-                  {INDUSTRIES.map(i => <option key={i} value={i} />)}
-                </datalist>
+                <input type="text" className="form-control" list="industry-list" value={editData.industry} onChange={e => setEditData({ ...editData, industry: e.target.value })} placeholder="Select or type industry..." />
               </div>
               <div className="form-group flex-1">
                 <label className="small font-bold text-primary">Location</label>
-                <input type="text" className="form-control" value={editData.location} onChange={e => setEditData({...editData, location: e.target.value})} />
+                <input type="text" className="form-control" value={editData.location} onChange={e => setEditData({ ...editData, location: e.target.value })} />
               </div>
             </div>
 
             <div className="form-group">
               <label className="small font-bold text-primary">Target Designation / Expertise</label>
-              <input type="text" className="form-control" list="designation-list" value={editData.ex_designation} onChange={e => setEditData({...editData, ex_designation: e.target.value})} placeholder="e.g. Senior Logistics Advisor" />
+              <input type="text" className="form-control" list="designation-list" value={editData.ex_designation} onChange={e => setEditData({ ...editData, ex_designation: e.target.value })} placeholder="e.g. Senior Logistics Advisor" />
             </div>
 
             <div className="form-group">
               <label className="small font-bold text-primary">Professional Summary</label>
-              <textarea className="form-control" rows="4" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} placeholder="A brief summary of your career..." />
+              <textarea className="form-control" rows="4" value={editData.bio} onChange={e => setEditData({ ...editData, bio: e.target.value })} placeholder="A brief summary of your career..." />
             </div>
 
             <div className="form-group">
               <label className="small font-bold text-primary">Key Skills (comma separated)</label>
-              <input type="text" className="form-control" value={typeof editData.skills === 'string' ? editData.skills : editData.skills.join(', ')} onChange={e => setEditData({...editData, skills: e.target.value})} placeholder="e.g. Leadership, Strategy, Operations" />
+              <input type="text" className="form-control" value={typeof editData.skills === 'string' ? editData.skills : editData.skills.join(', ')} onChange={e => setEditData({ ...editData, skills: e.target.value })} placeholder="e.g. Leadership, Strategy, Operations" />
             </div>
           </div>
-          
-            <div className="flex gap-4 mt-8">
-              <button 
-                className="btn btn-primary flex-1 py-4" 
-                onClick={() => {
-                  const skillsArray = typeof editData.skills === 'string' 
-                    ? editData.skills.split(',').map(s => s.trim()).filter(s => s !== '')
-                    : editData.skills;
-                  
-                  // Clean up Not Listed values with their custom values
-                  const finalQuals = editData.qualifications.map(q => ({
-                    degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
-                    university: q.university === 'Not Listed / Other' ? q.custom_university : q.university,
-                    institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
-                  }));
 
-                  onComplete({ ...editData, skills: skillsArray, qualifications: finalQuals });
-                }}
-                style={{ fontSize: '1.1rem' }}
-              >
-                Correct & Continue to My Profile
-              </button>
-              <button className="btn btn-outline" onClick={onSkip}>Skip & Set Up Later</button>
-            </div>
+          <div className="flex gap-4 mt-8">
+            <button
+              className="btn btn-primary flex-1 py-4"
+              onClick={() => {
+                const skillsArray = typeof editData.skills === 'string'
+                  ? editData.skills.split(',').map(s => s.trim()).filter(s => s !== '')
+                  : editData.skills;
 
-            <datalist id="university-list">
-              {UNIVERSITIES.map(u => <option key={u} value={u} />)}
-            </datalist>
-            <datalist id="degree-list">
-              {DEGREES.map(d => <option key={d} value={d} />)}
-            </datalist>
-            <datalist id="company-list">
-              {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}
-            </datalist>
-            <datalist id="designation-list">
-              {SENIOR_DESIGNATIONS.map(d => <option key={d} value={d} />)}
-            </datalist>
-            <datalist id="industry-list">
-              {INDUSTRIES.map(i => <option key={i} value={i} />)}
-            </datalist>
+                // Clean up Not Listed values with their custom values
+                const finalQuals = editData.qualifications.map(q => ({
+                  degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
+                  university: q.university === 'Not Listed / Other' ? q.custom_university : q.university,
+                  institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
+                }));
+
+                const finalWork = editData.work_history.map(w => ({
+                  ...w,
+                  company: w.company === 'Not Listed / Other' ? w.custom_company : w.company,
+                  role: w.role === 'Not Listed / Other' ? w.custom_role : w.role
+                }));
+
+                onComplete({ ...editData, skills: skillsArray, qualifications: finalQuals, work_history: finalWork });
+              }}
+              style={{ fontSize: '1.1rem' }}
+            >
+              Correct & Continue to My Profile
+            </button>
+            <button className="btn btn-outline" onClick={onSkip}>Skip & Set Up Later</button>
           </div>
-          <style jsx="true">{`
+        </div>
+        <style jsx="true">{`
           .onboarding-card h2 { color: var(--primary-color); }
           .form-group { margin-bottom: 1.5rem; }
           .form-group label { display: block; margin-bottom: 0.5rem; }
@@ -379,14 +452,14 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
     <div className="onboarding-container animate-fade-in">
       <div className="onboarding-card">
         <div className="onboarding-header">
-          <div className="step-badge">Welcome, {user.name.split(' ')[0]}!</div>
+          <div className="step-badge">Welcome, {(user.name || 'User').split(' ')[0]}!</div>
           <h2>Let's build your expert profile</h2>
           <div className="onboarding-options">
             <div className="option-card upload" onClick={!isParsing ? handleResumeClick : undefined}>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                style={{ display: 'none' }} 
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
                 onChange={handleFileChange}
                 accept=".pdf,.doc,.docx"
               />
@@ -617,7 +690,7 @@ function ProfessionalSignup() {
       setIsCameraActive(true);
       setTempSelfie(null);
       setZoomLevel(1);
-      
+
       if (step === 1) {
         setIsAnalyzing(true);
         analysisTimeoutRef.current = setTimeout(() => {
@@ -661,7 +734,7 @@ function ProfessionalSignup() {
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
       options.mimeType = 'video/webm';
     }
-    
+
     try {
       const recorder = new MediaRecorder(stream, options);
       recorder.ondataavailable = (event) => {
@@ -675,12 +748,12 @@ function ProfessionalSignup() {
         setRecordedVideoUrl(url);
         setFormData({ ...formData, videoUrl: url });
       };
-      
+
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
       setRecordingTime(0);
-      
+
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -734,7 +807,7 @@ function ProfessionalSignup() {
     if (file) {
       setResumeName(file.name);
       setIsScanningResume(true);
-      
+
       // Simulate "AI" Scanning
       setTimeout(() => {
         setIsScanningResume(false);
@@ -768,7 +841,7 @@ function ProfessionalSignup() {
       // Use the actual video dimensions for precision
       const vWidth = video.videoWidth || 400;
       const vHeight = video.videoHeight || 300;
-      
+
       const sw = vWidth / zoomLevel;
       const sh = vHeight / vWidth * sw; // Keep aspect ratio
       const sx = (vWidth - sw) / 2;
@@ -778,10 +851,10 @@ function ProfessionalSignup() {
       context.setTransform(1, 0, 0, 1, 0, 0);
       context.translate(canvas.width, 0);
       context.scale(-1, 1);
-      
+
       // Draw ONLY the zoomed portion
       context.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-      
+
       const dataUrl = canvas.toDataURL('image/png');
       setTempSelfie(dataUrl);
       stopCamera();
@@ -863,16 +936,16 @@ function ProfessionalSignup() {
 
         {/* 6-Step Stepper */}
         <div className="stepper stepper-extended">
-          {[1,2,3,4,5,6].map(i => (
+          {[1, 2, 3, 4, 5, 6].map(i => (
             <div key={i} className={`step ${step >= i ? 'completed' : ''} ${step === i ? 'active' : ''}`}>{i}</div>
           ))}
         </div>
 
         <div className="form-card">
           {error && <div className="validation-error" style={{ background: '#fee2e2', padding: '0.8rem', borderRadius: '4px', marginBottom: '1.5rem', textAlign: 'center' }}>{error}</div>}
-          
+
           <form onSubmit={step === 6 ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }}>
-            
+
             {/* Step 1: Identity */}
             {step === 1 && (
               <div className="step-content">
@@ -890,13 +963,13 @@ function ProfessionalSignup() {
                   <label className="form-label">Full Name (as per ID)</label>
                   <input type="text" name="fullName" className="form-input" value={formData.fullName} onChange={handleChange} required disabled={digilockerVerified} />
                 </div>
-                
+
                 <div className="form-grid-2">
                   <div className="form-group">
                     <label className="form-label">Date of Birth</label>
                     <input type="date" name="dob" className="form-input" value={formData.dob} onChange={handleChange} required disabled={digilockerVerified} />
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Mobile Number</label>
                     <div className="flex gap-2">
@@ -910,11 +983,11 @@ function ProfessionalSignup() {
                     </div>
                     {otpSent && !otpVerified && (
                       <div className="flex gap-2 mt-2">
-                        <input 
-                          type="text" 
-                          placeholder="Enter 4-digit OTP" 
-                          className="form-input" 
-                          style={{ fontSize: '0.85rem' }} 
+                        <input
+                          type="text"
+                          placeholder="Enter 4-digit OTP"
+                          className="form-input"
+                          style={{ fontSize: '0.85rem' }}
                           value={otpInput}
                           onChange={(e) => setOtpInput(e.target.value)}
                         />
@@ -945,17 +1018,17 @@ function ProfessionalSignup() {
                       📸 Click to Open Camera for Automated Selfie
                     </div>
                   )}
-                  
+
                   {isCameraActive && (
                     <div className={`camera-box ${isAnalyzing ? 'is-analyzing' : ''}`}>
                       <div className="camera-container">
-                        <video 
-                          ref={videoRef} 
-                          autoPlay 
-                          playsInline 
-                          muted 
-                          className="video-feed" 
-                          style={{ transform: `rotateY(180deg) scale(${zoomLevel})` }} 
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="video-feed"
+                          style={{ transform: `rotateY(180deg) scale(${zoomLevel})` }}
                         />
                         {isAnalyzing && <div className="scanner-line"></div>}
                         <div className="capture-overlay"></div>
@@ -976,7 +1049,7 @@ function ProfessionalSignup() {
                       <h4 className="mb-4">Use this photo for verification?</h4>
                       <img src={tempSelfie} alt="Captured Selfie" className="selfie-result" />
                       <div className="camera-controls">
-                        <button type="button" className="btn btn-primary" onClick={() => { setFormData({...formData, selfie: tempSelfie}); setTempSelfie(null); }}>Yes, Confirm</button>
+                        <button type="button" className="btn btn-primary" onClick={() => { setFormData({ ...formData, selfie: tempSelfie }); setTempSelfie(null); }}>Yes, Confirm</button>
                         <button type="button" className="btn btn-outline" onClick={() => { setTempSelfie(null); startCamera(); }}>No, Retake</button>
                       </div>
                     </div>
@@ -1049,7 +1122,7 @@ function ProfessionalSignup() {
                   {formData.resume && (
                     <div className="verified-file-badge">
                       <span className="badge badge-success">✓ {resumeName} Analyzed</span>
-                      <button type="button" className="btn-link" onClick={() => setFormData({...formData, resume: null})}>Change</button>
+                      <button type="button" className="btn-link" onClick={() => setFormData({ ...formData, resume: null })}>Change</button>
                     </div>
                   )}
                 </div>
@@ -1103,7 +1176,7 @@ function ProfessionalSignup() {
                   <label className="form-label">Do you have prior consulting experience?</label>
                   <div className="choice-grid">
                     {['Yes', 'No'].map(opt => (
-                      <div key={opt} className={`choice-box ${formData.consultingExp === opt ? 'active' : ''}`} onClick={() => setFormData({...formData, consultingExp: opt})}>
+                      <div key={opt} className={`choice-box ${formData.consultingExp === opt ? 'active' : ''}`} onClick={() => setFormData({ ...formData, consultingExp: opt })}>
                         {opt}
                       </div>
                     ))}
@@ -1128,10 +1201,10 @@ function ProfessionalSignup() {
                     <label className="form-label">Current City</label>
                     {LOCATION_DATA[formData.country] ? (
                       <select name="city" className="form-input" value={formData.city} onChange={handleChange}>
-                         <option value="">Select City</option>
-                         {LOCATION_DATA[formData.country].map(city => (
-                           <option key={city} value={city}>{city}</option>
-                         ))}
+                        <option value="">Select City</option>
+                        {LOCATION_DATA[formData.country].map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
                       </select>
                     ) : (
                       <input type="text" name="city" className="form-input" value={formData.city} onChange={handleChange} required placeholder="Enter City Name" />
@@ -1142,7 +1215,7 @@ function ProfessionalSignup() {
                   <label className="form-label">Work Preference</label>
                   <div className="choice-grid">
                     {['Remote', 'On-site', 'Hybrid'].map(m => (
-                      <div key={m} className={`choice-box ${formData.workMode === m ? 'active' : ''}`} onClick={() => setFormData({...formData, workMode: m})}>
+                      <div key={m} className={`choice-box ${formData.workMode === m ? 'active' : ''}`} onClick={() => setFormData({ ...formData, workMode: m })}>
                         {m}
                       </div>
                     ))}
@@ -1152,7 +1225,7 @@ function ProfessionalSignup() {
                   <label className="form-label">Availability Type</label>
                   <div className="choice-grid">
                     {['Full-time', 'Part-time', 'Consulting'].map(a => (
-                      <div key={a} className={`choice-box ${formData.availability === a ? 'active' : ''}`} onClick={() => setFormData({...formData, availability: a})}>
+                      <div key={a} className={`choice-box ${formData.availability === a ? 'active' : ''}`} onClick={() => setFormData({ ...formData, availability: a })}>
                         {a}
                       </div>
                     ))}
@@ -1166,7 +1239,7 @@ function ProfessionalSignup() {
               <div className="step-content">
                 <h3>Step 6: Video Introduction</h3>
                 <p className="text-secondary small mb-4">Record a short (30-60s) intro to build instant trust with companies.</p>
-                
+
                 <div className="recording-box">
                   {recordedVideoUrl ? (
                     <video src={recordedVideoUrl} controls className="video-playback" />
@@ -1176,7 +1249,7 @@ function ProfessionalSignup() {
                         <video ref={videoRef} autoPlay playsInline muted className="video-feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full text-white">
-                          <div style={{fontSize: '3rem'}}>🎥</div>
+                          <div style={{ fontSize: '3rem' }}>🎥</div>
                           <button type="button" className="btn btn-secondary mt-4" onClick={startCamera}>Open Camera</button>
                         </div>
                       )}
@@ -1190,8 +1263,8 @@ function ProfessionalSignup() {
 
                       {isCameraActive && !isRecording && (
                         <div className="video-overlay">
-                          <div className="rec-dot" style={{backgroundColor: '#94a3b8'}}></div>
-                          <span style={{fontSize: '0.8rem'}}>READY</span>
+                          <div className="rec-dot" style={{ backgroundColor: '#94a3b8' }}></div>
+                          <span style={{ fontSize: '0.8rem' }}>READY</span>
                         </div>
                       )}
                     </>
@@ -1201,22 +1274,22 @@ function ProfessionalSignup() {
                 <div className="flex gap-4">
                   {recordedVideoUrl ? (
                     <>
-                      <button type="button" className="btn btn-outline" style={{flex: 1}} onClick={() => { setRecordedVideoUrl(null); startCamera(); }}>Retake Video</button>
-                      <button type="button" className="btn btn-primary" style={{flex: 1}} onClick={() => nextStep()}>Keep & Finish</button>
+                      <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setRecordedVideoUrl(null); startCamera(); }}>Retake Video</button>
+                      <button type="button" className="btn btn-primary" style={{ flex: 1 }} onClick={() => nextStep()}>Keep & Finish</button>
                     </>
                   ) : (
                     <>
                       {isCameraActive && (
-                        <button 
-                          type="button" 
-                          className={`btn ${isRecording ? 'btn-danger' : 'btn-secondary'}`} 
-                          style={{flex: 1}} 
+                        <button
+                          type="button"
+                          className={`btn ${isRecording ? 'btn-danger' : 'btn-secondary'}`}
+                          style={{ flex: 1 }}
                           onClick={isRecording ? stopRecording : startRecording}
                         >
                           {isRecording ? 'Stop Recording' : 'Start Recording'}
                         </button>
                       )}
-                      <button type="button" className="btn btn-outline" style={{flex: 1}} onClick={stopCamera}>
+                      <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={stopCamera}>
                         {isCameraActive ? 'Cancel' : 'Skip Video'}
                       </button>
                     </>
@@ -1252,7 +1325,7 @@ function CompanyHome() {
           </div>
         </div>
       </header>
-      
+
       <main className="container" style={{ padding: '4rem 1.5rem' }}>
         <div className="view-title">What RetirePro Does for You</div>
         <div className="feature-grid">
@@ -1357,9 +1430,9 @@ function CompanySignup() {
 
         <div className="form-card">
           {error && <div className="validation-error" style={{ marginBottom: '1rem', textAlign: 'center', padding: '0.5rem', background: '#fee2e2' }}>{error}</div>}
-          
+
           <form onSubmit={step === 4 ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }}>
-            
+
             {/* Step 1: Business Identity */}
             {step === 1 && (
               <div className="step-content">
@@ -1372,7 +1445,7 @@ function CompanySignup() {
                   <div className="form-group">
                     <label className="form-label">Business Email</label>
                     <input type="email" name="businessEmail" className="form-input" value={formData.businessEmail} onChange={handleChange} required placeholder="hr@yourcompany.com" />
-                    {!formData.businessEmail.includes('@') || formData.businessEmail.endsWith('gmail.com') || formData.businessEmail.endsWith('yahoo.com') ? 
+                    {!formData.businessEmail.includes('@') || formData.businessEmail.endsWith('gmail.com') || formData.businessEmail.endsWith('yahoo.com') ?
                       <p style={{ fontSize: '0.7rem', color: 'var(--secondary-color)' }}>⚠️ Work domain email is preferred for faster approval.</p> : null}
                   </div>
                   <div className="form-group">
@@ -1530,6 +1603,21 @@ function App() {
     };
   }, [activeView]);
 
+  // Notifications State
+  const [notifications, setNotifications] = useState([
+    { id: 1, type: 'view', text: 'Metro Logistics viewed your profile', time: '2h ago', unread: true, icon: '🏢' },
+    { id: 2, type: 'shortlist', text: 'You were shortlisted by Vantage Corp for Senior Advisor', time: '5h ago', unread: true, icon: '🎯' },
+    { id: 3, type: 'interest', text: 'Google (Alphabet) showed interest in your resume', time: '1d ago', unread: false, icon: '⚡' },
+    { id: 4, type: 'message', text: 'Someone from Microsoft wants to connect', time: '2d ago', unread: false, icon: '💬' },
+  ]);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  const markAllRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+  };
+
   // ── Auth State ──────────────────────────────────────────────────────────────
   const [authData, setAuthData] = useState(() => {
     try {
@@ -1579,10 +1667,6 @@ function App() {
 
   const handleRoleSelect = (role) => {
     setUserRole(role);
-    // If it's a professional, and no parsed profile yet, show onboarding
-    if (role === 'Professional' && !parsedProfile) {
-      setActiveView('onboarding');
-    }
   };
 
   const handleResetRole = () => {
@@ -1640,24 +1724,64 @@ function App() {
               </div>
               {userRole === 'Company' ? (
                 <>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Home</a>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Account</a>
+                  <a href="#" className={activeView === 'home' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Home</a>
+                  <a href="#" className={activeView === 'verification' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Account</a>
                   <button className="btn btn-outline" style={{ marginRight: '0.5rem' }}>Our Talent</button>
-                  <button className="btn btn-primary" onClick={() => setActiveView('profile')}>My Profile</button>
+                  <button className={`btn ${activeView === 'profile' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveView('profile')}>My Profile</button>
                 </>
               ) : (
                 <>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Find Jobs</a>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Expert Status</a>
-                  <button className="btn btn-primary" onClick={() => setActiveView('profile')}>My Profile</button>
+                  <a href="#" className={activeView === 'home' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Find Jobs</a>
+                  <a href="#" className={activeView === 'verification' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Expert Status</a>
+                  <button className={`btn ${activeView === 'profile' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveView('profile')}>My Profile</button>
                 </>
               )}
+
+              {/* Notification Bell */}
+              <div className="notif-container">
+                <div className={`bell-icon ${showNotifDropdown ? 'active' : ''}`} onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z"/>
+                  </svg>
+                  {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
+                </div>
+                
+                {showNotifDropdown && (
+                  <div className="notif-dropdown">
+                    <div className="notif-header">
+                      <h4>Notifications</h4>
+                      <button 
+                        className="btn btn-xs btn-outline" 
+                        onClick={(e) => { e.stopPropagation(); markAllRead(); }}
+                        style={{ fontSize: '0.7rem' }}
+                      >
+                        Mark all as read
+                      </button>
+                    </div>
+                    <div className="notif-list">
+                      {notifications.length > 0 ? (
+                        notifications.map(n => (
+                          <div key={n.id} className={`notif-item ${n.unread ? 'unread' : ''}`}>
+                            <div className="notif-icon">{n.icon}</div>
+                            <div className="notif-content">
+                              <div className="notif-text">{n.text}</div>
+                              <div className="notif-time">{n.time}</div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="notif-empty">No new notifications</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* User avatar + logout */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div className="nav-user-avatar" title={user.name || user.email}>
-                  {user.avatar
-                    ? <img src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
+                  {(parsedProfile?.avatar || user.avatar)
+                    ? <img src={parsedProfile?.avatar || user.avatar} alt={user.name} referrerPolicy="no-referrer" />
                     : initials
                   }
                 </div>
@@ -1679,8 +1803,8 @@ function App() {
 
         {/* Conditional Rendering for Both Roles */}
         {activeView === 'onboarding' ? (
-          <OnboardingScreen 
-            user={authData.user} 
+          <OnboardingScreen
+            user={authData.user}
             onComplete={(data) => {
               setParsedProfile(data);
               localStorage.setItem('rp_parsed_profile', JSON.stringify(data));
@@ -1689,13 +1813,13 @@ function App() {
             onSkip={() => setActiveView('home')}
           />
         ) : userRole === 'Company' ? (
-          activeView === 'home' ? <CompanyHome /> : 
-          activeView === 'verification' ? <CompanySignup /> :
-          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
+          activeView === 'home' ? <CompanyHome /> :
+            activeView === 'verification' ? <CompanySignup /> :
+              <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
         ) : (
-          activeView === 'home' ? <ProfessionalHome /> : 
-          activeView === 'verification' ? <ProfessionalSignup /> :
-          <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
+          activeView === 'home' ? <ProfessionalHome /> :
+            activeView === 'verification' ? <ProfessionalSignup /> :
+              <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
         )}
 
         {/* Footer */}
@@ -1716,15 +1840,35 @@ function App() {
           requireConfirmation={false}
           codeContext=""
         />
+
       </div>
     );
   };
 
   return (
-    <Routes>
-      <Route path="/auth-success" element={<AuthSuccess />} />
-      <Route path="*" element={renderMainContent()} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/auth-success" element={<AuthSuccess />} />
+        <Route path="*" element={renderMainContent()} />
+      </Routes>
+
+      {/* Persistent Global Datalists for throughout the app suggestions */}
+      <datalist id="degree-list">
+        {DEGREES.map(d => <option key={d} value={d} />)}
+      </datalist>
+      <datalist id="university-list">
+        {UNIVERSITIES.map(u => <option key={u} value={u} />)}
+      </datalist>
+      <datalist id="designation-list">
+        {SENIOR_DESIGNATIONS.map(d => <option key={d} value={d} />)}
+      </datalist>
+      <datalist id="company-list">
+        {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}
+      </datalist>
+      <datalist id="industry-list">
+        {INDUSTRIES.map(i => <option key={i} value={i} />)}
+      </datalist>
+    </>
   );
 }
 

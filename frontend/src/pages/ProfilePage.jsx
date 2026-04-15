@@ -1,19 +1,136 @@
 import React, { useState } from 'react';
-import { INDUSTRIES, UNIVERSITIES, AFFILIATED_COLLEGES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES } from '../utils/constants';
+import { INDUSTRIES, UNIVERSITIES, AFFILIATED_COLLEGES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES, INDIAN_CITIES } from '../utils/constants';
 
 const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) => {
   const [activeCategory, setActiveCategory] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [tempProfile, setTempProfile] = useState(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isMobileVerified, setIsMobileVerified] = useState(false);
+  const [isGeneratingBio, setIsGeneratingBio] = useState(false);
+  const [isChangingAvatar, setIsChangingAvatar] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [isAnalyzingFace, setIsAnalyzingFace] = useState(false);
+  const [faceVerified, setFaceVerified] = useState(false);
+  const videoRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
   const fileInputRef = React.useRef(null);
 
   const startEditing = () => {
     setTempProfile({
       ...profile,
+      industry: Array.isArray(profile.industry) ? profile.industry : (profile.industry ? profile.industry.split(', ') : []),
+      gender: profile.gender || '',
+      dob: profile.dob || '',
+      location: profile.location || '',
+      work_cities: Array.isArray(profile.work_cities) ? profile.work_cities : (profile.work_cities ? profile.work_cities.split(', ') : []),
+      mobile: profile.mobile || '+91 ',
       qualifications: profile.qualifications || [],
-      work_history: profile.work_history || []
+      work_history: profile.work_history || [],
+      cover_image: profile.cover_image || null
     });
+    setOtpSent(false);
+    setOtpCode('');
+    setIsMobileVerified(!!profile.mobile && profile.mobile.length > 4);
     setIsEditing(true);
+  };
+
+  const generateAiBio = () => {
+    if (!tempProfile.years_of_experience || tempProfile.work_history.length === 0) {
+      alert("Please fill in your experience and work history first so the AI can read it!");
+      return;
+    }
+
+    setIsGeneratingBio(true);
+
+    // Simulate "Reading Resume" - using the data filled in the form
+    setTimeout(() => {
+      const industry = tempProfile.industry.length > 0 ? tempProfile.industry[0] : "professional field";
+      const experience = tempProfile.years_of_experience;
+      const topRole = tempProfile.work_history[0]?.role || "Expert";
+      const topCompany = tempProfile.work_history[0]?.company || "top-tier organizations";
+      const degree = tempProfile.qualifications[0]?.degree || "";
+
+      const templates = [
+        `Dynamic ${topRole} with ${experience} of extensive expertise in ${industry}. Successfully transitioned from a distinguished career at ${topCompany} to providing strategic advisory services. ${degree ? `A ${degree} holder, I` : 'I'} specialize in driving operational excellence and leading multi-disciplinary teams through complex transformations.`,
+        `Seasoned ${industry} professional with over ${experience} years of hands-on experience, most recently as ${topRole} at ${topCompany}. Passionate about leveraging my deep industry knowledge to mentor next-generation talent and help organizations navigate modern challenges. Recognized for strategic foresight and a results-driven approach.`,
+        `Accomplished ${topRole} with a proven track record of over ${experience} in the ${industry} sector. Following a successful tenure at ${topCompany}, I now focus on strategic consulting and organizational growth. Committed to excellence, integrity, and sustainable business development.`
+      ];
+
+      const randomBio = templates[Math.floor(Math.random() * templates.length)];
+      setTempProfile(prev => ({ ...prev, bio: randomBio }));
+      setIsGeneratingBio(false);
+    }, 2000);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdateProfile({ ...profile, avatar: reader.result });
+        setIsChangingAvatar(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCoverUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdateProfile({ ...profile, cover_image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      setCameraActive(true);
+      setFaceVerified(false);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Camera access denied", err);
+      alert("Camera access denied. Please allow camera permissions.");
+      setCameraActive(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    setCameraActive(false);
+  };
+
+  const captureSelfie = () => {
+    setIsAnalyzingFace(true);
+    // Simulate AI Face Detection (80% visibility check)
+    setTimeout(() => {
+      if (videoRef.current && canvasRef.current) {
+        const context = canvasRef.current.getContext('2d');
+        canvasRef.current.width = videoRef.current.videoWidth;
+        canvasRef.current.height = videoRef.current.videoHeight;
+        context.drawImage(videoRef.current, 0, 0);
+        const imageData = canvasRef.current.toDataURL('image/png');
+
+        setFaceVerified(true);
+        setIsAnalyzingFace(false);
+
+        setTimeout(() => {
+          onUpdateProfile({ ...profile, avatar: imageData });
+          stopCamera();
+          setIsChangingAvatar(false);
+        }, 1500);
+      }
+    }, 2000);
   };
 
   const profile = profileData || {
@@ -21,10 +138,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
     email: user.email,
     industry: userRole === 'Company' ? 'Technology' : 'Supply Chain & Logistics',
     years_of_experience: userRole === 'Company' ? '15+ Years' : '28 Years',
-    bio: userRole === 'Company' 
+    bio: userRole === 'Company'
       ? "We are a forward-thinking organization dedicated to innovation and excellence. We value the deep experience that senior professionals bring to our projects and are committed to creating meaningful consulting opportunities."
       : "Highly experienced professional with over 25 years in the industry. Currently focused on sharing expertise and mentoring the next generation of leaders while maintaining a balanced retirement lifestyle.",
-    skills: userRole === 'Company' 
+    skills: userRole === 'Company'
       ? ['Project Management', 'Consulting', 'Leadership', 'Risk Management']
       : ['Strategic Planning', 'Process Optimization', 'Team Leadership', 'Six Sigma Black Belt', 'Global Logistics'],
     location: 'Mumbai, India',
@@ -140,6 +257,19 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 ))}
               </div>
             </div>
+
+            <div className="category-group mt-8">
+              <h4 className="category-title">Preferred Work Locations</h4>
+              <div className="flex gap-2 flex-wrap mt-2">
+                {profile.work_cities && profile.work_cities.length > 0 ? (
+                  profile.work_cities.map(city => (
+                    <span key={city} className="job-tag" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', borderColor: 'var(--primary)' }}>{city}</span>
+                  ))
+                ) : (
+                  <span className="text-secondary small">No locations specified</span>
+                )}
+              </div>
+            </div>
           </div>
         );
       case 'financial':
@@ -181,10 +311,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                   <span style={{ fontSize: '3rem', marginBottom: '1rem' }}>📄</span>
                   <h4>{userRole === 'Company' ? 'Upload Portfolio / Brochure' : 'Update Your Resume'}</h4>
                   <p className="small text-secondary mb-4">PDF, DOCX (Max 10MB)</p>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    style={{ display: 'none' }} 
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
                     onChange={(e) => {
                       if (e.target.files[0]) {
                         alert('Document uploaded successfully: ' + e.target.files[0].name);
@@ -256,7 +386,17 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 </div>
               </div>
             </div>
-            <button className="btn btn-danger-outline mt-8" style={{ color: 'var(--error-color)', borderColor: 'var(--error-color)' }}>Delete Account</button>
+            <button 
+              className="btn btn-danger-outline mt-8" 
+              style={{ color: 'var(--error-color)', borderColor: 'var(--error-color)' }}
+              onClick={() => {
+                if (window.confirm("Are you sure you want to permanently delete your account? All your profile data and settings will be lost forever.")) {
+                  onDeleteAccount();
+                }
+              }}
+            >
+              Delete Account
+            </button>
           </div>
         );
       default:
@@ -269,22 +409,55 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
       <div className="container">
         {/* Profile Header */}
         <div className="profile-header-card">
-          <div className="profile-cover"></div>
+          <div
+            className="profile-cover-wrapper"
+            onClick={() => document.getElementById('cover-upload').click()}
+          >
+            {profile.cover_image ? (
+              <img src={profile.cover_image} className="cover-img" alt="Banner" />
+            ) : (
+              <div className="profile-cover-default"></div>
+            )}
+            <div className="cover-edit-overlay">
+              <span className="text-2xl">✎</span>
+            </div>
+            {profile.cover_image && (
+              <button
+                className="cover-delete-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateProfile({ ...profile, cover_image: null });
+                }}
+                title="Remove Banner"
+              >
+                ✕
+              </button>
+            )}
+            <input
+              type="file"
+              id="cover-upload"
+              hidden
+              accept="image/*"
+              onChange={handleCoverUpload}
+            />
+          </div>
           <div className="profile-header-content">
-            <div className="profile-avatar-wrapper">
+            <div className="profile-avatar-wrapper group">
               <div className="profile-avatar-large">
-                {user.avatar ? <img src={user.avatar} alt={user.name} /> : initials}
+                {profile.avatar ? <img src={profile.avatar} alt={user.name} /> : initials}
+              </div>
+              <div
+                className="avatar-edit-overlay"
+                onClick={() => setIsChangingAvatar(true)}
+              >
+                <span className="text-xl">✎</span>
               </div>
               <div className="verified-badge-large">✓</div>
             </div>
             <div className="profile-title-area">
               <div className="flex items-center gap-3">
                 <h1 style={{ margin: 0, fontSize: '2rem' }}>{profile.name}</h1>
-                {profileData ? (
-                  <span className="badge-pulsing">Resume Powered</span>
-                ) : (
-                  <span className="expert-badge-v2">Verified Expert</span>
-                )}
+                {!profileData && <span className="expert-badge-v2">Verified Expert</span>}
               </div>
               <p className="profile-subtitle">{profile.ex_designation} | {profile.years_of_experience} Exp</p>
               <div className="flex gap-4 mt-2">
@@ -296,6 +469,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               <button className="btn btn-primary" onClick={startEditing}>Edit Profile</button>
               <button className="btn btn-outline" onClick={onBack}>Back to Home</button>
             </div>
+            {profileData && <span className="badge-pulsing">Resume Powered ✨</span>}
           </div>
         </div>
 
@@ -305,8 +479,8 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           <aside className="profile-sidebar">
             <div className="profile-menu-card">
               {categories.map(cat => (
-                <div 
-                  key={cat.id} 
+                <div
+                  key={cat.id}
                   className={`profile-menu-item ${activeCategory === cat.id ? 'active' : ''}`}
                   onClick={() => setActiveCategory(cat.id)}
                 >
@@ -342,11 +516,11 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         {isEditing && tempProfile && (
           <div className="modal-overlay">
             <div className="edit-modal animate-slide-up" style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
-              <div className="flex justify-between items-center mb-6 sticky-header">
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-color)' }}>Edit Professional Profile</h2>
+              <div className="sticky-header">
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>Edit Professional Profile</h2>
                 <button className="close-btn" onClick={() => setIsEditing(false)}>✕</button>
               </div>
-              
+
               <div className="edit-sections-container">
                 {/* Basic Info */}
                 <div className="edit-section mb-8">
@@ -354,26 +528,211 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                   <div className="edit-form-grid">
                     <div className="form-group">
                       <label>Full Name</label>
-                      <input type="text" value={tempProfile.name} onChange={e => setTempProfile({...tempProfile, name: e.target.value})} />
+                      <input type="text" value={tempProfile.name} onChange={e => setTempProfile({ ...tempProfile, name: e.target.value })} />
                     </div>
                     <div className="form-group">
                       <label>Mobile Number</label>
-                      <input type="text" value={tempProfile.mobile || ''} onChange={e => setTempProfile({...tempProfile, mobile: e.target.value})} />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={tempProfile.mobile}
+                          onChange={e => {
+                            let val = e.target.value;
+                            if (!val.startsWith('+91 ')) val = '+91 ';
+                            const digits = val.slice(4).replace(/\D/g, '');
+                            if (digits.length <= 10) {
+                              setTempProfile({ ...tempProfile, mobile: '+91 ' + digits });
+                              setIsMobileVerified(false); // Reset verification if number changes
+                            }
+                          }}
+                          className={isMobileVerified ? 'border-success' : ''}
+                        />
+                        {!isMobileVerified && (
+                          <button
+                            className="btn btn-outline btn-xs"
+                            style={{ minWidth: '80px' }}
+                            onClick={() => {
+                              if (tempProfile.mobile.length === 14) {
+                                setOtpSent(true);
+                                alert('OTP sent to ' + tempProfile.mobile + ' (Mock: 1234)');
+                              } else {
+                                alert('Please enter a valid 10-digit number');
+                              }
+                            }}
+                          >
+                            {otpSent ? 'Resend' : 'Get OTP'}
+                          </button>
+                        )}
+                      </div>
+                      {otpSent && !isMobileVerified && (
+                        <div className="flex gap-2 mt-2 animate-fade-in">
+                          <input
+                            type="text"
+                            placeholder="Enter OTP"
+                            value={otpCode}
+                            onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                            style={{ maxWidth: '100px' }}
+                          />
+                          <button
+                            className="btn btn-primary btn-xs"
+                            onClick={() => {
+                              if (otpCode === '1234') {
+                                setIsMobileVerified(true);
+                                setOtpSent(false);
+                                alert('Mobile verified successfully!');
+                              } else {
+                                alert('Invalid OTP. Use 1234');
+                              }
+                            }}
+                          >
+                            Verify
+                          </button>
+                        </div>
+                      )}
+                      {isMobileVerified && <div className="text-success tiny-label mt-1">✓ Verified</div>}
+                    </div>
+                    <div className="form-group full-width">
+                      <label>Industry Focus (Select multiple)</label>
+                      <div className="multi-select-container">
+                        {tempProfile.industry && tempProfile.industry.length > 0 ? (
+                          tempProfile.industry.map(ind => (
+                            <span key={ind} className="job-tag flex items-center gap-2" style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '0.4rem 0.8rem' }}>
+                              {ind}
+                              <button
+                                className="text-xs hover:text-white"
+                                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
+                                onClick={() => setTempProfile({
+                                  ...tempProfile,
+                                  industry: tempProfile.industry.filter(i => i !== ind)
+                                })}
+                              >✕</button>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-secondary small" style={{ padding: '0.5rem' }}>No industries selected</span>
+                        )}
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <select
+                          className="form-control"
+                          onChange={e => {
+                            if (e.target.value && !tempProfile.industry.includes(e.target.value)) {
+                              setTempProfile({
+                                ...tempProfile,
+                                industry: [...tempProfile.industry, e.target.value]
+                              });
+                            }
+                            e.target.value = '';
+                          }}
+                        >
+                          <option value="">+ Add Industry</option>
+                          {INDUSTRIES.map(i => (
+                            <option key={i} value={i} disabled={tempProfile.industry.includes(i)}>
+                              {i}
+                            </option>
+                          ))}
+                        </select>
+                        <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--primary-color)' }}>▼</span>
+                      </div>
+                    </div>
+                     <div className="form-group">
+                      <label>Gender</label>
+                      <div style={{ position: 'relative' }}>
+                        <select className="form-control" value={tempProfile.gender} onChange={e => setTempProfile({ ...tempProfile, gender: e.target.value })}>
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--primary-color)' }}>▼</span>
+                      </div>
                     </div>
                     <div className="form-group">
-                      <label>Industry Focus</label>
-                      <input type="text" list="industry-list" value={tempProfile.industry} onChange={e => setTempProfile({...tempProfile, industry: e.target.value})} />
-                      <datalist id="industry-list">
-                        {INDUSTRIES.map(i => <option key={i} value={i} />)}
+                      <label>Date of Birth</label>
+                      <input type="date" className="form-control" value={tempProfile.dob} onChange={e => setTempProfile({ ...tempProfile, dob: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                      <label>Current Location</label>
+                      <input type="text" list="city-list" className="form-control" value={tempProfile.location} onChange={e => setTempProfile({ ...tempProfile, location: e.target.value })} />
+                      <datalist id="city-list">
+                        {INDIAN_CITIES.map(c => <option key={c} value={c} />)}
                       </datalist>
                     </div>
                     <div className="form-group">
                       <label>Total Experience</label>
-                      <input type="text" value={tempProfile.years_of_experience} onChange={e => setTempProfile({...tempProfile, years_of_experience: e.target.value})} />
+                      <input type="text" value={tempProfile.years_of_experience} onChange={e => setTempProfile({ ...tempProfile, years_of_experience: e.target.value })} />
+                    </div>
+
+                    <div className="form-group full-width">
+                      <label>Cities Able to Work (Select multiple)</label>
+                      <div className="multi-select-container">
+                        {tempProfile.work_cities && tempProfile.work_cities.length > 0 ? (
+                          tempProfile.work_cities.map(city => (
+                            <span key={city} className="job-tag flex items-center gap-2" style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '0.4rem 0.8rem' }}>
+                              {city}
+                              <button
+                                className="text-xs hover:text-white"
+                                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
+                                onClick={() => setTempProfile({
+                                  ...tempProfile,
+                                  work_cities: tempProfile.work_cities.filter(c => c !== city)
+                                })}
+                              >✕</button>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-secondary small" style={{ padding: '0.5rem' }}>No cities selected</span>
+                        )}
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <select
+                          className="form-control"
+                          onChange={e => {
+                            if (e.target.value && !tempProfile.work_cities.includes(e.target.value)) {
+                              setTempProfile({
+                                ...tempProfile,
+                                work_cities: [...tempProfile.work_cities, e.target.value]
+                              });
+                            }
+                            e.target.value = '';
+                          }}
+                        >
+                          <option value="">+ Add City</option>
+                          {INDIAN_CITIES.map(c => (
+                            <option key={c} value={c} disabled={tempProfile.work_cities.includes(c)}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                        <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--primary-color)' }}>▼</span>
+                      </div>
                     </div>
                     <div className="form-group full-width">
-                      <label>Professional Bio</label>
-                      <textarea rows="3" value={tempProfile.bio} onChange={e => setTempProfile({...tempProfile, bio: e.target.value})}></textarea>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="mb-0">Professional Bio</label>
+                        <button
+                          className={`btn btn-xs ${isGeneratingBio ? 'btn-disabled' : 'btn-outline'}`}
+                          style={{ borderColor: 'var(--secondary-color)', color: 'var(--secondary-color)', display: 'flex', gap: '4px', alignItems: 'center' }}
+                          onClick={generateAiBio}
+                          disabled={isGeneratingBio}
+                        >
+                          {isGeneratingBio ? (
+                            <>
+                              <span className="ai-loader"></span> Generating...
+                            </>
+                          ) : (
+                            <>✨ Generate AI Bio</>
+                          )}
+                        </button>
+                      </div>
+                      <textarea
+                        rows="4"
+                        value={tempProfile.bio}
+                        onChange={e => setTempProfile({ ...tempProfile, bio: e.target.value })}
+                        placeholder="Tell us about your professional journey..."
+                        className={isGeneratingBio ? 'ai-glow' : ''}
+                      ></textarea>
+                      <p className="tiny-label mt-1" style={{ color: '#94a3b8', fontStyle: 'italic' }}>AI will read your experience and qualifications to write this.</p>
                     </div>
                   </div>
                 </div>
@@ -383,9 +742,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="section-subtitle">Education & Qualifications</h4>
                     <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({
-                      ...tempProfile, 
+                      ...tempProfile,
                       qualifications: [
-                        ...tempProfile.qualifications, 
+                        ...tempProfile.qualifications,
                         { degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }
                       ]
                     })}>+ Add Education</button>
@@ -399,7 +758,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                             const newQuals = [...tempProfile.qualifications];
                             newQuals[idx].degree = e.target.value;
                             if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_degree = '';
-                            setTempProfile({...tempProfile, qualifications: newQuals});
+                            setTempProfile({ ...tempProfile, qualifications: newQuals });
                           }} placeholder="e.g. B.Tech" />
                         </div>
                         <div className="form-group">
@@ -409,21 +768,21 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                             newQuals[idx].university = e.target.value;
                             if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_university = '';
                             newQuals[idx].institute = '';
-                            setTempProfile({...tempProfile, qualifications: newQuals});
+                            setTempProfile({ ...tempProfile, qualifications: newQuals });
                           }} />
                         </div>
                         <div className="form-group">
                           <div className="flex justify-between items-center">
                             <label className="tiny-label">3. College</label>
                             <button className="btn btn-danger-outline btn-xs" style={{ background: 'none', border: 'none', padding: 0 }} onClick={() => {
-                              setTempProfile({...tempProfile, qualifications: tempProfile.qualifications.filter((_, i) => i !== idx)});
+                              setTempProfile({ ...tempProfile, qualifications: tempProfile.qualifications.filter((_, i) => i !== idx) });
                             }}>✕</button>
                           </div>
                           <input type="text" list={`college-list-modal-${idx}`} value={q.institute} onChange={e => {
                             const newQuals = [...tempProfile.qualifications];
                             newQuals[idx].institute = e.target.value;
                             if (e.target.value !== 'Not Listed / Other') newQuals[idx].custom_institute = '';
-                            setTempProfile({...tempProfile, qualifications: newQuals});
+                            setTempProfile({ ...tempProfile, qualifications: newQuals });
                           }} />
                           <datalist id={`college-list-modal-${idx}`}>
                             {(AFFILIATED_COLLEGES[q.university] || []).map(c => <option key={c} value={c} />)}
@@ -438,21 +797,21 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                             <input type="text" className="text-xs" value={q.custom_degree || ''} placeholder="Degree Name" onChange={e => {
                               const newQuals = [...tempProfile.qualifications];
                               newQuals[idx].custom_degree = e.target.value;
-                              setTempProfile({...tempProfile, qualifications: newQuals});
+                              setTempProfile({ ...tempProfile, qualifications: newQuals });
                             }} />
                           )}
                           {q.university === 'Not Listed / Other' && (
                             <input type="text" className="text-xs" value={q.custom_university || ''} placeholder="University Name" onChange={e => {
                               const newQuals = [...tempProfile.qualifications];
                               newQuals[idx].custom_university = e.target.value;
-                              setTempProfile({...tempProfile, qualifications: newQuals});
+                              setTempProfile({ ...tempProfile, qualifications: newQuals });
                             }} />
                           )}
                           {q.institute === 'Not Listed / Other' && (
                             <input type="text" className="text-xs" value={q.custom_institute || ''} placeholder="College Name" onChange={e => {
                               const newQuals = [...tempProfile.qualifications];
                               newQuals[idx].custom_institute = e.target.value;
-                              setTempProfile({...tempProfile, qualifications: newQuals});
+                              setTempProfile({ ...tempProfile, qualifications: newQuals });
                             }} />
                           )}
                         </div>
@@ -466,9 +825,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="section-subtitle">Work Experience History</h4>
                     <button className="btn btn-sm btn-outline" onClick={() => setTempProfile({
-                      ...tempProfile, 
+                      ...tempProfile,
                       work_history: [
-                        ...tempProfile.work_history, 
+                        ...tempProfile.work_history,
                         { role: '', company: '', duration: '', custom_role: '', custom_company: '' }
                       ]
                     })}>+ Add Experience</button>
@@ -481,35 +840,52 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                           <input type="text" list="designation-list" value={w.role} onChange={e => {
                             const newWork = [...tempProfile.work_history];
                             newWork[idx].role = e.target.value;
-                            setTempProfile({...tempProfile, work_history: newWork});
+                            if (e.target.value !== 'Not Listed / Other') newWork[idx].custom_role = '';
+                            setTempProfile({ ...tempProfile, work_history: newWork });
                           }} />
-                          <datalist id="designation-list">
-                            {SENIOR_DESIGNATIONS.map(d => <option key={d} value={d} />)}
-                          </datalist>
                         </div>
                         <div className="form-group flex-1">
                           <label className="tiny-label">Company</label>
                           <input type="text" list="company-list" value={w.company} onChange={e => {
                             const newWork = [...tempProfile.work_history];
                             newWork[idx].company = e.target.value;
-                            setTempProfile({...tempProfile, work_history: newWork});
+                            if (e.target.value !== 'Not Listed / Other') newWork[idx].custom_company = '';
+                            setTempProfile({ ...tempProfile, work_history: newWork });
                           }} />
-                          <datalist id="company-list">
-                            {MAJOR_COMPANIES.map(c => <option key={c} value={c} />)}
-                          </datalist>
                         </div>
                       </div>
+
+                      {/* Manual Option for Company and Designation */}
+                      {(w.company === 'Not Listed / Other' || w.role === 'Not Listed / Other') && (
+                        <div className="grid grid-cols-2 gap-3 mb-3 p-2 bg-white rounded border border-dashed border-primary">
+                          {w.company === 'Not Listed / Other' && (
+                            <input type="text" className="text-xs" value={w.custom_company || ''} placeholder="Actual Company Name" onChange={e => {
+                              const newWork = [...tempProfile.work_history];
+                              newWork[idx].custom_company = e.target.value;
+                              setTempProfile({ ...tempProfile, work_history: newWork });
+                            }} />
+                          )}
+                          {w.role === 'Not Listed / Other' && (
+                            <input type="text" className="text-xs" value={w.custom_role || ''} placeholder="Actual Designation Name" onChange={e => {
+                              const newWork = [...tempProfile.work_history];
+                              newWork[idx].custom_role = e.target.value;
+                              setTempProfile({ ...tempProfile, work_history: newWork });
+                            }} />
+                          )}
+                        </div>
+                      )}
+
                       <div className="flex justify-between items-end">
                         <div className="form-group flex-1">
                           <label className="tiny-label">Duration (Years)</label>
                           <input type="text" value={w.duration} onChange={e => {
                             const newWork = [...tempProfile.work_history];
                             newWork[idx].duration = e.target.value;
-                            setTempProfile({...tempProfile, work_history: newWork});
+                            setTempProfile({ ...tempProfile, work_history: newWork });
                           }} placeholder="2015 - 2024" />
                         </div>
                         <button className="btn btn-danger-outline btn-sm ms-4 mb-1" onClick={() => {
-                          setTempProfile({...tempProfile, work_history: tempProfile.work_history.filter((_, i) => i !== idx)});
+                          setTempProfile({ ...tempProfile, work_history: tempProfile.work_history.filter((_, i) => i !== idx) });
                         }}>Remove Experience</button>
                       </div>
                     </div>
@@ -517,17 +893,16 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 </div>
               </div>
 
-              <div className="flex gap-4 mt-8 sticky-footer">
-                <button 
-                  className="btn btn-primary flex-1 p-4" 
+              <div className="sticky-footer">
+                <button
+                  className="btn btn-primary"
                   onClick={() => {
-                    // Clean up data before saving
                     const finalQuals = tempProfile.qualifications.map(q => ({
                       degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
                       university: q.university === 'Not Listed / Other' ? q.custom_university : q.university,
                       institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
                     }));
-                    
+
                     const finalWork = tempProfile.work_history.map(w => ({
                       ...w,
                       role: w.role === 'Not Listed / Other' ? w.custom_role : w.role,
@@ -537,12 +912,91 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     onUpdateProfile({ ...tempProfile, qualifications: finalQuals, work_history: finalWork });
                     setIsEditing(false);
                   }}
-                  style={{ fontSize: '1.1rem', fontWeight: 600 }}
                 >
-                  Save Professional Profile
+                  Save Profile
                 </button>
-                <button className="btn btn-outline" onClick={() => setIsEditing(false)}>Cancel</button>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </button>
               </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Avatar Upload Modal */}
+        {isChangingAvatar && (
+          <div className="modal-overlay">
+            <div className="edit-modal animate-slide-up" style={{ maxWidth: '450px' }}>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="section-subtitle mb-0">Update Profile Photo</h3>
+                <button className="close-btn" onClick={() => { setIsChangingAvatar(false); stopCamera(); }}>✕</button>
+              </div>
+
+              {!cameraActive ? (
+                <>
+                  <div className="avatar-options-grid">
+                    <div className="avatar-option-card" onClick={() => fileInputRef.current.click()}>
+                      <div className="option-icon">📁</div>
+                      <div className="option-label">Upload from Device</div>
+                      <input
+                        type="file"
+                        hidden
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+                    <div className="avatar-option-card" onClick={startCamera}>
+                      <div className="option-icon">📸</div>
+                      <div className="option-label">Take a Selfie</div>
+                    </div>
+                  </div>
+                  {profile.avatar && (
+                    <button
+                      className="btn btn-outline w-full mt-6"
+                      style={{ color: 'var(--error-color)', borderColor: '#fee2e2', background: '#fef2f2' }}
+                      onClick={() => {
+                        onUpdateProfile({ ...profile, avatar: null });
+                        setIsChangingAvatar(false);
+                      }}
+                    >
+                      Delete Current Photo
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="camera-view-container">
+                  <div className={`camera-wrapper ${isAnalyzingFace ? 'analyzing' : ''}`}>
+                    <video ref={videoRef} autoPlay playsInline className="video-feed" />
+                    <div className="face-guide-overlay">
+                      <div className="face-oval"></div>
+                    </div>
+                    {isAnalyzingFace && (
+                      <div className="analysis-overlay">
+                        <div className="scanner-line"></div>
+                        <p className="text-white font-bold" style={{ textAlign: 'center', padding: '0 20px' }}>Verifying Face Alignment (80%+ visibility required)...</p>
+                      </div>
+                    )}
+                    {faceVerified && (
+                      <div className="success-overlay animate-fade-in">
+                        <div className="check-icon">✓</div>
+                        <p className="text-white font-bold">Face Verified!</p>
+                      </div>
+                    )}
+                  </div>
+                  <canvas ref={canvasRef} style={{ display: 'none' }} />
+                  {!isAnalyzingFace && !faceVerified && (
+                    <div className="camera-controls mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <button className="btn btn-primary w-full" style={{ height: '45px' }} onClick={captureSelfie}>Capture Photo</button>
+                      <button className="btn btn-outline w-full" style={{ height: '45px' }} onClick={stopCamera}>Cancel</button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -564,10 +1018,72 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           z-index: 5;
         }
 
-        .profile-cover {
-          height: 160px;
+        .profile-cover-wrapper {
+          width: 100%;
+          aspect-ratio: 4 / 1;
+          position: relative;
+          cursor: pointer;
+          overflow: hidden;
+          background-color: #f8fafc;
+          z-index: 1;
+        }
+
+        .profile-cover-default {
+          width: 100%;
+          height: 100%;
           background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
           opacity: 0.9;
+        }
+
+        .cover-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .cover-edit-overlay {
+          position: absolute;
+          top: 1.5rem;
+          right: 1.5rem;
+          background: rgba(0,0,0,0.4);
+          color: white;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(4px);
+          z-index: 10;
+        }
+
+        .profile-cover-wrapper:hover .cover-edit-overlay {
+          opacity: 1;
+        }
+
+        .cover-delete-btn {
+          position: absolute;
+          top: 1.5rem;
+          right: 4.5rem;
+          background: rgba(239, 68, 68, 0.8);
+          color: white;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          transition: all 0.3s ease;
+          z-index: 10;
+        }
+
+        .profile-cover-wrapper:hover .cover-delete-btn {
+          opacity: 1;
         }
 
         .profile-header-content {
@@ -575,7 +1091,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           display: flex;
           align-items: flex-end;
           gap: 2rem;
-          margin-top: -4rem;
+          margin-top: -5rem;
+          position: relative;
+          z-index: 5;
         }
 
         .profile-avatar-wrapper {
@@ -623,7 +1141,25 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
 
         .profile-title-area {
           flex: 1;
-          padding-bottom: 0.5rem;
+          padding: 1rem 1.5rem;
+          background: rgba(255, 255, 255, 0.75);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-radius: 16px;
+          margin-left: -0.5rem;
+          margin-bottom: 0.5rem;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .profile-title-area h1 {
+          color: #0f172a;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-shadow: 0 0 20px rgba(255,255,255,0.5);
         }
 
         .expert-badge-v2 {
@@ -637,6 +1173,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .badge-pulsing {
+          position: absolute;
+          top: 1.5rem;
+          right: 2rem;
           background-color: #f0fdf4;
           color: #16a34a;
           border: 1px solid #bbf7d0;
@@ -646,6 +1185,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           font-weight: bold;
           text-transform: uppercase;
           animation: pulse-green 2s infinite;
+          z-index: 10;
         }
 
         @keyframes pulse-green {
@@ -898,55 +1438,237 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           text-transform: uppercase;
           letter-spacing: 0.05em;
           font-weight: 700;
-          margin-bottom: 1rem;
-          border-bottom: 2px solid #eff6ff;
-          padding-bottom: 0.5rem;
+          margin-bottom: 1.25rem;
+          padding-bottom: 0.75rem;
+          border-bottom: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .form-group label {
+          display: block;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: var(--primary-color);
+          margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle::before {
+          content: '';
+          display: block;
+          width: 4px;
+          height: 16px;
+          background: var(--primary-color);
+          border-radius: 2px;
         }
 
         .tiny-label {
-          font-size: 0.7rem;
+          font-size: 0.75rem;
           font-weight: 700;
-          color: #64748b;
+          color: var(--primary-color);
           text-transform: uppercase;
-          margin-bottom: 0.25rem;
+          margin-bottom: 0.35rem;
           display: block;
+          opacity: 0.8;
         }
 
-        .edit-modal input, .edit-modal textarea {
+        .edit-modal input, .edit-modal textarea, .edit-modal select, .form-control {
           width: 100%;
-          padding: 0.75rem;
+          padding: 0.85rem 1rem;
           border: 1px solid #e2e8f0;
-          border-radius: 10px;
+          border-radius: 12px;
           font-family: inherit;
+          font-size: 1rem;
+          background-color: #f8fafc;
+          transition: all 0.2s ease;
+          appearance: none;
+        }
+
+        .edit-modal input:focus, .edit-modal textarea:focus, .edit-modal select:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          background-color: white;
+          box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.08);
+        }
+
+        .multi-select-container {
+          width: 100%;
+          min-height: 54px;
+          padding: 0.6rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          background-color: white;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 0.75rem;
         }
 
         .sticky-header {
           position: sticky;
-          top: 0;
+          top: -2.5rem;
           background: white;
-          padding-bottom: 1rem;
+          padding: 1.5rem 2.5rem;
+          margin: -2.5rem -2.5rem 2rem -2.5rem;
           border-bottom: 1px solid #f1f5f9;
-          margin-top: -1rem;
-          z-index: 10;
+          z-index: 100;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-top-left-radius: 20px;
+          border-top-right-radius: 20px;
         }
 
         .sticky-footer {
           position: sticky;
-          bottom: 0;
+          bottom: -2.5rem;
           background: white;
-          padding-top: 1rem;
+          padding: 1.5rem 2.5rem;
+          margin: 3rem -2.5rem -2.5rem -2.5rem;
           border-top: 1px solid #f1f5f9;
-          margin-bottom: -1rem;
-          z-index: 10;
+          z-index: 100;
+          display: flex;
+          gap: 1.25rem;
+          border-bottom-left-radius: 20px;
+          border-bottom-right-radius: 20px;
+          box-shadow: 0 -10px 20px rgba(0,0,0,0.02);
         }
 
-        .btn-xs { padding: 4px 8px; font-size: 0.7rem; }
+        .sticky-footer button {
+          flex: 1;
+          height: 54px;
+          border-radius: 14px;
+          font-size: 1rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+
+        .btn-disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .ai-loader {
+          width: 12px;
+          height: 12px;
+          border: 2px solid rgba(0,0,0,0.1);
+          border-top-color: var(--secondary-color);
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+        }
+
+        .ai-glow {
+          box-shadow: 0 0 15px rgba(245, 124, 0, 0.2);
+          border-color: var(--secondary-color) !important;
+          background-color: #fff9f0;
+          transition: all 0.3s ease;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @keyframes slide-up {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-slide-up { animation: slide-up 0.3s ease-out; }
+        .profile-avatar-wrapper {
+          position: relative;
+          cursor: pointer;
+        }
+        .avatar-edit-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.4);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: 5;
+        }
+        .profile-avatar-wrapper:hover .avatar-edit-overlay {
+          opacity: 1;
+        }
+        
+        .avatar-options-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          padding: 1rem 0;
+        }
+        .avatar-option-card {
+          border: 2px solid #e2e8f0;
+          border-radius: var(--radius-lg);
+          padding: 2rem 1rem;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .avatar-option-card:hover {
+          border-color: var(--primary-color);
+          background: #f0f7ff;
+          transform: translateY(-4px);
+        }
+        .option-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .option-label { font-weight: 700; font-size: 0.9rem; color: #1e293b; }
+
+        .camera-wrapper {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1;
+          background: #000;
+          border-radius: 20px;
+          overflow: hidden;
+          border: 4px solid #e2e8f0;
+        }
+        .camera-wrapper.analyzing { border-color: var(--secondary-color); }
+        .video-feed { width: 100%; height: 100%; object-fit: cover; }
+        
+        .face-guide-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+        }
+        .face-oval {
+          width: 70%;
+          height: 80%;
+          border: 2px dashed rgba(255,255,255,0.6);
+          border-radius: 50%;
+        }
+
+        .analysis-overlay, .success-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+        }
+        .success-overlay { background: rgba(34, 197, 94, 0.7); }
+        .check-icon { font-size: 4rem; color: white; margin-bottom: 1rem; }
+
+        .scanner-line {
+          width: 100%;
+          height: 4px;
+          background: var(--secondary-color);
+          box-shadow: 0 0 15px var(--secondary-color);
+          position: absolute;
+          top: 0;
+          animation: scan 2s linear infinite;
+        }
+        @keyframes scan {
+          0% { top: 10%; }
+          50% { top: 90%; }
+          100% { top: 10%; }
+        }
       `}</style>
     </div>
   );
