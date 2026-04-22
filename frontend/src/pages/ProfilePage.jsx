@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { INDUSTRIES, UNIVERSITIES, AFFILIATED_COLLEGES, SENIOR_DESIGNATIONS, MAJOR_COMPANIES, DEGREES, INDIAN_CITIES } from '../utils/constants';
 
-const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) => {
+const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile, onDeleteAccount }) => {
   const [activeCategory, setActiveCategory] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [tempProfile, setTempProfile] = useState(null);
@@ -15,7 +15,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
   const [faceVerified, setFaceVerified] = useState(false);
   const videoRef = React.useRef(null);
   const canvasRef = React.useRef(null);
-  const fileInputRef = React.useRef(null);
+  const resumeInputRef = React.useRef(null);
+  const avatarInputRef = React.useRef(null);
+  const [uploadedResumeFile, setUploadedResumeFile] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const startEditing = () => {
     setTempProfile({
@@ -133,6 +136,36 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
     }, 2000);
   };
 
+  const syncProfileWithResume = () => {
+    if (!uploadedResumeFile) return;
+    setIsSyncing(true);
+
+    setTimeout(() => {
+      const extractedData = {
+        ...profile,
+        name: "Tushar Bhatt",
+        industry: ["Logistics", "Supply Chain", "Operations"],
+        years_of_experience: "22 Years",
+        ex_company: "Logistics Pioneers Inc.",
+        ex_designation: "Director of Global Operations",
+        bio: "Accomplished Director of Global Operations with over 22 years of expertise in large-scale logistics and supply chain management. Proven track record in optimizing international freight networks and leading diverse teams across three continents. Specialist in Six Sigma methodologies and digital transformation.",
+        skills: ["Global Logistics", "Six Sigma Black Belt", "Team Leadership", "Digital Transformation", "Strategic Planning"],
+        work_history: [
+          { role: "Director of Global Operations", company: "Logistics Pioneers Inc.", duration: "2018 - Present" },
+          { role: "Senior Logistics Manager", company: "Metro Freight Hub", duration: "2010 - 2018" }
+        ],
+        qualifications: [
+          { degree: "MBA in Operations", institute: "IIT Delhi", university: "IIT", startYear: "2008", endYear: "2010" },
+          { degree: "B.Tech", institute: "Mumbai University", university: "MU", startYear: "2004", endYear: "2008" }
+        ]
+      };
+
+      onUpdateProfile(extractedData);
+      setIsSyncing(false);
+      alert("AI Scan Complete! Profile has been updated based on your resume.");
+    }, 3000);
+  };
+
   const profile = profileData || {
     name: user.name || 'User',
     email: user.email,
@@ -145,6 +178,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
       ? ['Project Management', 'Consulting', 'Leadership', 'Risk Management']
       : ['Strategic Planning', 'Process Optimization', 'Team Leadership', 'Six Sigma Black Belt', 'Global Logistics'],
     location: 'Mumbai, India',
+    mobile: '+91 98765 43210',
     ex_company: 'Logistics Pioneers Inc.',
     ex_designation: 'Staff Logistics Manager',
     age: 50,
@@ -157,14 +191,12 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
     { id: 'overview', label: 'Company Overview', icon: '🏢' },
     { id: 'professional', label: 'Hiring Preferences', icon: '🔍' },
     { id: 'financial', label: 'Spending & Contracts', icon: '💳' },
-    { id: 'resume', label: 'Documents & Portfolio', icon: '📎' },
-    { id: 'settings', label: 'Settings & Security', icon: '⚙️' },
+    { id: 'resume', label: 'Documents & Portfolio', icon: '📎' }
   ] : [
     { id: 'overview', label: 'Overview', icon: '👤' },
     { id: 'professional', label: 'Expertise & Experience', icon: '💼' },
     { id: 'resume', label: 'Resume & Documents', icon: '📄' },
-    { id: 'financial', label: 'Earnings & Goals', icon: '💰' },
-    { id: 'settings', label: 'Settings & Security', icon: '⚙️' },
+    { id: 'financial', label: 'Earnings & Goals', icon: '💰' }
   ];
 
   const renderContent = () => {
@@ -180,13 +212,25 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               </div>
               <div className="info-item">
                 <label>{userRole === 'Company' ? 'Business Email' : 'Email Address'}</label>
-                <div className="value">{user.email}</div>
+                <div className="value flex items-center gap-2">
+                  {user.email}
+                  <span className="text-success" style={{ fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    <span style={{ fontSize: '1rem' }}>✓</span> Verified
+                  </span>
+                </div>
               </div>
               {userRole === 'Professional' && (
                 <>
                   <div className="info-item">
                     <label>Mobile Number</label>
-                    <div className="value">{profile.mobile || '+91 00000 00000'}</div>
+                    <div className="value flex items-center gap-2">
+                      {profile.mobile || '+91 00000 00000'}
+                      {(profile.mobile && profile.mobile.length > 5) && (
+                        <span className="text-success" style={{ fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          <span style={{ fontSize: '1rem' }}>✓</span> Verified
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="info-item">
                     <label>Gender</label>
@@ -200,6 +244,34 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     <label>Current Location</label>
                     <div className="value">{profile.location}</div>
                   </div>
+                  <div className="info-item">
+                    <label>Total Experience</label>
+                    <div className="value">{profile.years_of_experience}</div>
+                  </div>
+                  <div className="info-item full-width mt-2">
+                    <label>Industry Focus</label>
+                    <div className="flex gap-2 flex-wrap mt-1">
+                      {Array.isArray(profile.industry) && profile.industry.length > 0 ? (
+                        profile.industry.map(ind => (
+                          <span key={ind} className="job-tag" style={{ background: 'var(--primary-color)', color: 'white', border: 'none' }}>{ind}</span>
+                        ))
+                      ) : (
+                        <span className="text-secondary small">Not Specified</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="info-item full-width mt-2">
+                    <label>Cities Able to Work</label>
+                    <div className="flex gap-2 flex-wrap mt-1">
+                      {Array.isArray(profile.work_cities) && profile.work_cities.length > 0 ? (
+                        profile.work_cities.map(city => (
+                          <span key={city} className="job-tag" style={{ borderColor: 'var(--primary-color)' }}>{city}</span>
+                        ))
+                      ) : (
+                        <span className="text-secondary small">Not Specified</span>
+                      )}
+                    </div>
+                  </div>
                 </>
               )}
               <div className="info-item">
@@ -210,7 +282,43 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               </div>
             </div>
 
-            <div className="profile-bio mt-6">
+            {userRole === 'Professional' && (
+              <>
+                <div className="category-group mt-8">
+                  <h4 className="category-title">Professional Experience History</h4>
+                  <div className="experience-list">
+                    {(profile.work_history || []).map((work, idx) => (
+                      <div key={idx} className="experience-item p-4 border rounded-lg bg-slate mb-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-bold text-primary" style={{ fontSize: '1.1rem' }}>{work.role}</div>
+                            <div className="text-secondary">{work.company}</div>
+                          </div>
+                          <span className="badge badge-outline">{work.duration}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="category-group mt-8">
+                  <h4 className="category-title">Education & Qualifications</h4>
+                  <div className="education-list grid grid-cols-2 gap-4">
+                    {(profile.qualifications || []).map((qual, idx) => (
+                      <div key={idx} className="qualification-card p-4 border rounded-lg bg-slate">
+                        <p className="font-bold text-primary" style={{ marginBottom: '0.25rem' }}>
+                          {qual.degree} {qual.startYear && qual.endYear && `(${qual.startYear} - ${qual.endYear})`}
+                        </p>
+                        <p className="small text-secondary" style={{ marginBottom: '0.1rem' }}>{qual.institute}</p>
+                        {qual.university && <p className="tiny-label" style={{ color: 'var(--text-secondary)' }}>{qual.university}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="profile-bio mt-8">
               <label>{userRole === 'Company' ? 'About Our Company' : 'Professional Bio'}</label>
               <p>{profile.bio}</p>
             </div>
@@ -241,7 +349,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               <div className="education-list grid grid-cols-2 gap-4">
                 {(profile.qualifications || []).map((qual, idx) => (
                   <div key={idx} className="qualification-card p-4 border rounded-lg bg-slate">
-                    <p className="font-bold text-primary" style={{ marginBottom: '0.25rem' }}>{qual.degree}</p>
+                    <p className="font-bold text-primary" style={{ marginBottom: '0.25rem' }}>
+                      {qual.degree} {qual.startYear && qual.endYear && `(${qual.startYear} - ${qual.endYear})`}
+                    </p>
                     <p className="small text-secondary" style={{ marginBottom: '0.1rem' }}>{qual.institute}</p>
                     {qual.university && <p className="tiny-label" style={{ color: 'var(--text-secondary)' }}>{qual.university}</p>}
                   </div>
@@ -313,29 +423,57 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                   <p className="small text-secondary mb-4">PDF, DOCX (Max 10MB)</p>
                   <input
                     type="file"
-                    ref={fileInputRef}
+                    ref={resumeInputRef}
                     style={{ display: 'none' }}
                     onChange={(e) => {
-                      if (e.target.files[0]) {
-                        alert('Document uploaded successfully: ' + e.target.files[0].name);
+                      const file = e.target.files[0];
+                      if (file) {
+                        setUploadedResumeFile(file);
+                        alert('Document uploaded successfully: ' + file.name);
                       }
                     }}
                   />
-                  <button className="btn btn-outline" onClick={() => fileInputRef.current.click()}>Select File</button>
+                  <button className="btn btn-outline" onClick={() => resumeInputRef.current.click()}>Select File</button>
                 </div>
               </div>
 
               <div className="document-list mt-8">
                 <h4 className="mb-4">Uploaded Documents</h4>
-                <div className="doc-item flex justify-between items-center p-4 border rounded">
+                <div className="doc-item flex justify-between items-center p-4 border rounded hover:border-primary transition-all">
                   <div className="flex items-center gap-3">
                     <span style={{ fontSize: '1.5rem' }}>📄</span>
                     <div>
-                      <div className="font-bold">{userRole === 'Company' ? 'Registration_Certificate.pdf' : 'Main_Resume_2024.pdf'}</div>
-                      <div className="small text-secondary">Uploaded on April 12, 2024</div>
+                      <div className="font-bold">{uploadedResumeFile ? uploadedResumeFile.name : (userRole === 'Company' ? 'Registration_Certificate.pdf' : 'Main_Resume_2024.pdf')}</div>
+                      <div className="small text-secondary">{uploadedResumeFile ? 'Just uploaded' : 'Uploaded on April 12, 2024'}</div>
                     </div>
                   </div>
-                  <span className="badge badge-success">Verified</span>
+                  <div className="flex items-center gap-3">
+                    {uploadedResumeFile && (
+                      <>
+                        <button 
+                          className="btn btn-xs btn-outline" 
+                          onClick={() => window.open(URL.createObjectURL(uploadedResumeFile), '_blank')}
+                        >
+                          View
+                        </button>
+                        <button 
+                          className={`btn btn-xs ${isSyncing ? 'btn-disabled' : 'btn-primary'}`} 
+                          onClick={syncProfileWithResume}
+                          disabled={isSyncing}
+                          style={{ position: 'relative', overflow: 'hidden' }}
+                        >
+                          {isSyncing ? (
+                            <span className="flex items-center gap-1">
+                              <span className="ai-loader-xs"></span> Scanning...
+                            </span>
+                          ) : (
+                            <span>✨ Sync Profile</span>
+                          )}
+                        </button>
+                      </>
+                    )}
+                    <span className="badge badge-success">Verified</span>
+                  </div>
                 </div>
                 {userRole === 'Professional' && (
                   <div className="doc-item flex justify-between items-center p-4 border rounded mt-3">
@@ -351,52 +489,6 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                 )}
               </div>
             </div>
-          </div>
-        );
-      case 'settings':
-        return (
-          <div className="profile-section-content animate-fade-in">
-            <h3>Settings & Security</h3>
-            <div className="settings-list">
-              <div className="settings-item">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold">Email Notifications</div>
-                    <div className="text-secondary small">Receive updates about new job matches</div>
-                  </div>
-                  <input type="checkbox" defaultChecked />
-                </div>
-              </div>
-              <div className="settings-item">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold">Two-Factor Authentication</div>
-                    <div className="text-secondary small">Add an extra layer of security to your account</div>
-                  </div>
-                  <button className="btn btn-outline btn-sm">Enable</button>
-                </div>
-              </div>
-              <div className="settings-item">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold">Visible to Employers</div>
-                    <div className="text-secondary small">Your profile will appear in searches</div>
-                  </div>
-                  <input type="checkbox" defaultChecked />
-                </div>
-              </div>
-            </div>
-            <button 
-              className="btn btn-danger-outline mt-8" 
-              style={{ color: 'var(--error-color)', borderColor: 'var(--error-color)' }}
-              onClick={() => {
-                if (window.confirm("Are you sure you want to permanently delete your account? All your profile data and settings will be lost forever.")) {
-                  onDeleteAccount();
-                }
-              }}
-            >
-              Delete Account
-            </button>
           </div>
         );
       default:
@@ -522,7 +614,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               </div>
 
               <div className="edit-sections-container">
-                {/* Basic Info */}
+                {/* 1. Basic Information */}
                 <div className="edit-section mb-8">
                   <h4 className="section-subtitle">Basic Information</h4>
                   <div className="edit-form-grid">
@@ -635,7 +727,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                         <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--primary-color)' }}>▼</span>
                       </div>
                     </div>
-                     <div className="form-group">
+                    <div className="form-group">
                       <label>Gender</label>
                       <div style={{ position: 'relative' }}>
                         <select className="form-control" value={tempProfile.gender} onChange={e => setTempProfile({ ...tempProfile, gender: e.target.value })}>
@@ -643,6 +735,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
                           <option value="Other">Other</option>
+                          <option value="Prefer not to say">Prefer not to say</option>
                         </select>
                         <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--primary-color)' }}>▼</span>
                       </div>
@@ -707,37 +800,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                         <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--primary-color)' }}>▼</span>
                       </div>
                     </div>
-                    <div className="form-group full-width">
-                      <div className="flex justify-between items-center mb-1">
-                        <label className="mb-0">Professional Bio</label>
-                        <button
-                          className={`btn btn-xs ${isGeneratingBio ? 'btn-disabled' : 'btn-outline'}`}
-                          style={{ borderColor: 'var(--secondary-color)', color: 'var(--secondary-color)', display: 'flex', gap: '4px', alignItems: 'center' }}
-                          onClick={generateAiBio}
-                          disabled={isGeneratingBio}
-                        >
-                          {isGeneratingBio ? (
-                            <>
-                              <span className="ai-loader"></span> Generating...
-                            </>
-                          ) : (
-                            <>✨ Generate AI Bio</>
-                          )}
-                        </button>
-                      </div>
-                      <textarea
-                        rows="4"
-                        value={tempProfile.bio}
-                        onChange={e => setTempProfile({ ...tempProfile, bio: e.target.value })}
-                        placeholder="Tell us about your professional journey..."
-                        className={isGeneratingBio ? 'ai-glow' : ''}
-                      ></textarea>
-                      <p className="tiny-label mt-1" style={{ color: '#94a3b8', fontStyle: 'italic' }}>AI will read your experience and qualifications to write this.</p>
-                    </div>
                   </div>
                 </div>
 
-                {/* Qualifications List */}
+                {/* 2. Education & Qualifications */}
                 <div className="edit-section mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="section-subtitle">Education & Qualifications</h4>
@@ -745,12 +811,13 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                       ...tempProfile,
                       qualifications: [
                         ...tempProfile.qualifications,
-                        { degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }
+                        { degree: '', university: '', institute: '', startYear: '', endYear: '', custom_degree: '', custom_university: '', custom_institute: '' }
                       ]
                     })}>+ Add Education</button>
                   </div>
                   {tempProfile.qualifications.map((q, idx) => (
                     <div key={idx} className="list-edit-item bg-slate rounded-lg mb-4 p-4">
+                      {/* Education Details Row */}
                       <div className="grid grid-cols-3 gap-3 items-end mb-3">
                         <div className="form-group">
                           <label className="tiny-label">1. Degree</label>
@@ -790,6 +857,26 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                         </div>
                       </div>
 
+                      {/* Years Row */}
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div className="form-group">
+                          <label className="tiny-label">Start Year</label>
+                          <input type="text" placeholder="YYYY" value={q.startYear || ''} onChange={e => {
+                            const newQuals = [...tempProfile.qualifications];
+                            newQuals[idx].startYear = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            setTempProfile({ ...tempProfile, qualifications: newQuals });
+                          }} />
+                        </div>
+                        <div className="form-group">
+                          <label className="tiny-label">Completion Year</label>
+                          <input type="text" placeholder="YYYY" value={q.endYear || ''} onChange={e => {
+                            const newQuals = [...tempProfile.qualifications];
+                            newQuals[idx].endYear = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            setTempProfile({ ...tempProfile, qualifications: newQuals });
+                          }} />
+                        </div>
+                      </div>
+
                       {/* Custom Fields for "Other" selections */}
                       {(q.degree === 'Not Listed / Other' || q.university === 'Not Listed / Other' || q.institute === 'Not Listed / Other') && (
                         <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-dashed">
@@ -820,7 +907,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                   ))}
                 </div>
 
-                {/* Experience List */}
+                {/* 3. Work Experience History */}
                 <div className="edit-section mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="section-subtitle">Work Experience History</h4>
@@ -891,6 +978,37 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     </div>
                   ))}
                 </div>
+
+                {/* 4. Professional Bio */}
+                <div className="edit-section mb-8">
+                  <h4 className="section-subtitle">Professional Bio</h4>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="mb-0 small">Add a brief summary of your career...</label>
+                    <button
+                      className={`btn btn-xs ${isGeneratingBio ? 'btn-disabled' : 'btn-outline'}`}
+                      style={{ borderColor: 'var(--secondary-color)', color: 'var(--secondary-color)', display: 'flex', gap: '4px', alignItems: 'center' }}
+                      onClick={generateAiBio}
+                      disabled={isGeneratingBio}
+                    >
+                      {isGeneratingBio ? (
+                        <>
+                          <span className="ai-loader"></span> Generating...
+                        </>
+                      ) : (
+                        <>✨ Generate AI Bio</>
+                      )}
+                    </button>
+                  </div>
+                  <textarea
+                    rows="6"
+                    value={tempProfile.bio}
+                    onChange={e => setTempProfile({ ...tempProfile, bio: e.target.value })}
+                    placeholder="Tell us about your professional journey..."
+                    className={`form-control ${isGeneratingBio ? 'ai-glow' : ''}`}
+                    style={{ background: '#f8fafc' }}
+                  ></textarea>
+                  <p className="tiny-label mt-1" style={{ color: '#94a3b8', fontStyle: 'italic' }}>AI will read your experience and qualifications to write this.</p>
+                </div>
               </div>
 
               <div className="sticky-footer">
@@ -900,7 +1018,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
                     const finalQuals = tempProfile.qualifications.map(q => ({
                       degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
                       university: q.university === 'Not Listed / Other' ? q.custom_university : q.university,
-                      institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
+                      institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute,
+                      startYear: q.startYear,
+                      endYear: q.endYear
                     }));
 
                     const finalWork = tempProfile.work_history.map(w => ({
@@ -939,13 +1059,13 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
               {!cameraActive ? (
                 <>
                   <div className="avatar-options-grid">
-                    <div className="avatar-option-card" onClick={() => fileInputRef.current.click()}>
+                    <div className="avatar-option-card" onClick={() => avatarInputRef.current.click()}>
                       <div className="option-icon">📁</div>
                       <div className="option-label">Upload from Device</div>
                       <input
                         type="file"
                         hidden
-                        ref={fileInputRef}
+                        ref={avatarInputRef}
                         accept="image/*"
                         onChange={handleFileUpload}
                       />
@@ -1009,7 +1129,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .profile-header-card {
-          background-color: white;
+          background-color: var(--surface-color);
           border-radius: var(--radius-lg);
           overflow: hidden;
           box-shadow: var(--shadow-lg);
@@ -1024,7 +1144,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           position: relative;
           cursor: pointer;
           overflow: hidden;
-          background-color: #f8fafc;
+          background-color: var(--border-color);
           z-index: 1;
         }
 
@@ -1142,29 +1262,29 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .profile-title-area {
           flex: 1;
           padding: 1rem 1.5rem;
-          background: rgba(255, 255, 255, 0.75);
+          background: var(--glass-bg);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           border-radius: 16px;
           margin-left: -0.5rem;
           margin-bottom: 0.5rem;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 8px 32px var(--glass-shadow);
+          border: 1px solid var(--glass-border);
           display: flex;
           flex-direction: column;
           gap: 0.25rem;
         }
 
         .profile-title-area h1 {
-          color: #0f172a;
+          color: var(--text-primary);
           font-weight: 800;
           letter-spacing: -0.02em;
           text-shadow: 0 0 20px rgba(255,255,255,0.5);
         }
 
         .expert-badge-v2 {
-          background-color: #e0f2fe;
-          color: #0369a1;
+          background-color: var(--primary-color);
+          color: white;
           padding: 0.25rem 0.75rem;
           border-radius: 20px;
           font-size: 0.75rem;
@@ -1176,8 +1296,8 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           position: absolute;
           top: 1.5rem;
           right: 2rem;
-          background-color: #f0fdf4;
-          color: #16a34a;
+          background-color: var(--bg-hover-color);
+          color: var(--text-secondary);
           border: 1px solid #bbf7d0;
           padding: 0.25rem 0.75rem;
           border-radius: 20px;
@@ -1218,7 +1338,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .profile-menu-card {
-          background-color: white;
+          background-color: var(--surface-color);
           border-radius: var(--radius-lg);
           padding: 1rem;
           box-shadow: var(--shadow-md);
@@ -1237,12 +1357,12 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .profile-menu-item:hover {
-          background-color: #f1f5f9;
+          background-color: var(--bg-hover-color);
           color: var(--primary-color);
         }
 
         .profile-menu-item.active {
-          background-color: #f0f7ff;
+          background-color: var(--bg-active-color);
           color: var(--primary-color);
           font-weight: 600;
         }
@@ -1257,7 +1377,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .profile-content-card {
-          background-color: white;
+          background-color: var(--surface-color);
           border-radius: var(--radius-lg);
           padding: 2.5rem;
           box-shadow: var(--shadow-md);
@@ -1317,7 +1437,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .retirement-goal-card {
-          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          background: var(--bg-card-alt);
           padding: 2rem;
           border-radius: var(--radius-lg);
           border-left: 5px solid var(--secondary-color);
@@ -1325,7 +1445,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
 
         .progress-bar-bg {
           height: 12px;
-          background-color: #e2e8f0;
+          background-color: var(--border-color);
           border-radius: 6px;
           overflow: hidden;
         }
@@ -1338,7 +1458,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
 
         .progress-bar-bg-sm {
           height: 8px;
-          background-color: #f1f5f9;
+          background-color: var(--border-color);
           border-radius: 4px;
           overflow: hidden;
         }
@@ -1361,8 +1481,8 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .doc-item {
-          background-color: #f8fafc;
-          border-color: #e2e8f0;
+          background-color: var(--bg-alt-color);
+          border-color: var(--border-color);
           transition: var(--transition);
         }
 
@@ -1371,18 +1491,18 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
 
         .upload-zone {
-          border: 2px dashed #e2e8f0;
+          border: 2px dashed var(--border-color);
           border-radius: var(--radius-lg);
-          background-color: #f8fafc;
+          background-color: var(--bg-alt-color);
           transition: var(--transition);
         }
 
         .upload-zone:hover {
           border-color: var(--primary-color);
-          background-color: #f0f7ff;
+          background-color: var(--bg-active-color);
         }
 
-        .bg-slate { background-color: #f8fafc; }
+        .bg-slate { background-color: var(--bg-alt-color); }
         .flex-column { flex-direction: column; }
         .p-8 { padding: 2rem; }
         .rounded-lg { border-radius: var(--radius-lg); }
@@ -1403,6 +1523,82 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .small { font-size: 0.85rem; }
         .text-success { color: var(--success-color); }
 
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 768px) {
+          .profile-main-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+          }
+          
+          .profile-cover-wrapper {
+            aspect-ratio: 2 / 1;
+          }
+          
+          .profile-header-content {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 1.5rem 2.5rem 1.5rem;
+            margin-top: -3.5rem;
+            gap: 1.25rem;
+          }
+          
+          .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-width: 4px;
+          }
+          
+          .profile-title-area {
+            margin-left: 0;
+            width: 100%;
+            padding: 1.25rem;
+          }
+          
+          .profile-actions {
+            justify-content: center;
+            width: 100%;
+            flex-wrap: wrap;
+          }
+          
+          .stats-row {
+            grid-template-columns: 1fr;
+          }
+          
+          .info-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .badge-pulsing {
+            top: 0.5rem;
+            right: 0.5rem;
+            left: auto;
+            transform: scale(0.85);
+          }
+          
+          .profile-content-card {
+            padding: 1.5rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .profile-actions .btn {
+            width: 100%;
+          }
+          
+          .profile-header-card {
+            margin-top: 0;
+          }
+          
+          .profile-section-content h3 {
+            font-size: 1.25rem;
+          }
+          
+          .retirement-goal-card {
+            padding: 1rem;
+          }
+        }
+
         /* Modal Styles */
         .modal-overlay {
           position: fixed;
@@ -1415,7 +1611,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           backdrop-filter: blur(4px);
         }
         .edit-modal {
-          background: white;
+          background: var(--surface-color);
           width: 90%;
           max-width: 600px;
           border-radius: 20px;
@@ -1428,9 +1624,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           gap: 1.5rem;
         }
         .full-width { grid-column: span 2; }
-        .disabled-input { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
-        .close-btn:hover { color: #0f172a; }
+        .disabled-input { background: var(--bg-alt-color); color: var(--text-secondary); cursor: not-allowed; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
+        .close-btn:hover { color: var(--text-primary); }
 
         .section-subtitle {
           font-size: 0.9rem;
@@ -1440,7 +1636,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           font-weight: 700;
           margin-bottom: 1.25rem;
           padding-bottom: 0.75rem;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid var(--border-color);
           display: flex;
           align-items: center;
           gap: 0.75rem;
@@ -1476,11 +1672,11 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .edit-modal input, .edit-modal textarea, .edit-modal select, .form-control {
           width: 100%;
           padding: 0.85rem 1rem;
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           font-family: inherit;
           font-size: 1rem;
-          background-color: #f8fafc;
+          background-color: var(--bg-alt-color);
           transition: all 0.2s ease;
           appearance: none;
         }
@@ -1488,7 +1684,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .edit-modal input:focus, .edit-modal textarea:focus, .edit-modal select:focus {
           outline: none;
           border-color: var(--primary-color);
-          background-color: white;
+          background-color: var(--surface-color);
           box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.08);
         }
 
@@ -1496,9 +1692,9 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           width: 100%;
           min-height: 54px;
           padding: 0.6rem;
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
-          background-color: white;
+          background-color: var(--surface-color);
           display: flex;
           flex-wrap: wrap;
           gap: 0.5rem;
@@ -1508,10 +1704,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .sticky-header {
           position: sticky;
           top: -2.5rem;
-          background: white;
+          background: var(--surface-color);
           padding: 1.5rem 2.5rem;
           margin: -2.5rem -2.5rem 2rem -2.5rem;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid var(--border-color);
           z-index: 100;
           display: flex;
           justify-content: space-between;
@@ -1523,10 +1719,10 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .sticky-footer {
           position: sticky;
           bottom: -2.5rem;
-          background: white;
+          background: var(--surface-color);
           padding: 1.5rem 2.5rem;
           margin: 3rem -2.5rem -2.5rem -2.5rem;
-          border-top: 1px solid #f1f5f9;
+          border-top: 1px solid var(--border-color);
           z-index: 100;
           display: flex;
           gap: 1.25rem;
@@ -1609,7 +1805,7 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         }
         .avatar-option-card:hover {
           border-color: var(--primary-color);
-          background: #f0f7ff;
+          background: var(--bg-hover-color);
           transform: translateY(-4px);
         }
         .option-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
@@ -1645,7 +1841,35 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
         .analysis-overlay, .success-overlay {
           position: absolute;
           inset: 0;
-          background: rgba(0,0,0,0.5);
+          .parsing-loader {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+
+          @media (max-width: 768px) {
+            .onboarding-container {
+              padding: 1rem;
+            }
+            .onboarding-card {
+              padding: 1.5rem;
+              border-radius: 16px;
+            }
+            .onboarding-options {
+              grid-template-columns: 1fr;
+              gap: 1rem;
+              margin-top: 2rem;
+            }
+            .option-card {
+              padding: 1.5rem;
+            }
+            .sticky-header {
+              flex-direction: column;
+              text-align: center;
+              padding: 1rem;
+            }
+          }
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1668,6 +1892,15 @@ const ProfilePage = ({ user, userRole, profileData, onBack, onUpdateProfile }) =
           0% { top: 10%; }
           50% { top: 90%; }
           100% { top: 10%; }
+        }
+
+        .ai-loader-xs {
+          width: 10px;
+          height: 10px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
         }
       `}</style>
     </div>

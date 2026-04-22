@@ -1,73 +1,26 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-// Enums
-enum Role {
-  company
-  professional
-  admin
-}
-
-enum VerificationStatus {
-  pending
-  approved
-  rejected
-}
-
-enum ProjectStatus {
-  draft
-  open
-  active
-  completed
-  cancelled
-}
-
-enum AppStatus {
-  pending
-  shortlisted
-  accepted
-  rejected
-  withdrawn
-}
-
-enum ContractStatus {
-  draft
-  active
-  completed
-  disputed
-  cancelled
-}
-
-enum PaymentStatus {
-  pending
-  in_escrow
-  released
-  refunded
-  failed
-}
-
-enum EventType {
-  virtual
-  in_person
-}
-
-enum EventStatus {
-  requested
-  confirmed
-  completed
-  cancelled
-}
+// Enums converted to Strings for SQLite compatibility
+// Role: company, professional, admin
+// VerificationStatus: pending, approved, rejected
+// ProjectStatus: draft, open, active, completed, cancelled
+// AppStatus: pending, shortlisted, accepted, rejected, withdrawn
+// ContractStatus: draft, active, completed, disputed, cancelled
+// PaymentStatus: pending, in_escrow, released, refunded, failed
+// EventType: virtual, in_person
+// EventStatus: requested, confirmed, completed, cancelled
 
 model User {
   id                  String     @id @default(uuid())
   email               String     @unique
   password_hash       String?
-  role                Role?      @default(professional)
+  role                String?    @default("professional")
   auth_provider       String     @default("local") // 'local', 'google', 'linkedin'
   is_email_verified   Boolean    @default(false)
   is_phone_verified   Boolean    @default(false)
@@ -91,7 +44,7 @@ model User {
 model Company {
   id                  String     @id @default(uuid())
   user_id             String     @unique
-  user                User       @relation(fields: [user_id], references: [id])
+  user                User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   
   company_name        String
   gst_number          String?    @unique
@@ -100,7 +53,7 @@ model Company {
   official_website    String?
   industry            String?
   logo_url            String?
-  verification_status VerificationStatus @default(pending)
+  verification_status String @default("pending")
   
   created_at          DateTime   @default(now())
 
@@ -112,7 +65,7 @@ model Company {
 model Professional {
   id                  String     @id @default(uuid())
   user_id             String     @unique
-  user                User       @relation(fields: [user_id], references: [id])
+  user                User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   full_name           String
   ex_company_name     String?
@@ -124,12 +77,12 @@ model Professional {
   pan_card_url        String?
   photo_id_url        String?
   
-  verification_status VerificationStatus @default(pending)
-  commission_rate     Decimal    @default(0.08)
+  verification_status String @default("pending")
+  commission_rate     Float    @default(0.08)
   
   speaker_available   Boolean    @default(false)
-  speaker_topics      String[]
-  average_rating      Decimal?   @default(0)
+  speaker_topics      String   // Stored as comma-separated or JSON string in SQLite
+  average_rating      Float?   @default(0)
   total_projects_completed Int   @default(0)
 
   applications        Application[]
@@ -140,16 +93,16 @@ model Professional {
 model Project {
   id                  String     @id @default(uuid())
   company_id          String
-  company             Company    @relation(fields: [company_id], references: [id])
+  company             Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
   
   title               String
   description         String
   domain_required     String?
   experience_level    String?
-  budget              Decimal?
+  budget              Float?
   duration_in_days    Int?
   
-  status              ProjectStatus @default(draft)
+  status              String @default("draft")
   created_at          DateTime   @default(now())
   updated_at          DateTime   @updatedAt
 
@@ -161,13 +114,13 @@ model Project {
 model Application {
   id                  String     @id @default(uuid())
   project_id          String
-  project             Project    @relation(fields: [project_id], references: [id])
+  project             Project    @relation(fields: [project_id], references: [id], onDelete: Cascade)
   
   professional_id     String
-  professional        Professional @relation(fields: [professional_id], references: [id])
+  professional        Professional @relation(fields: [professional_id], references: [id], onDelete: Cascade)
   
   cover_note          String?
-  status              AppStatus  @default(pending)
+  status              String  @default("pending")
   applied_at          DateTime   @default(now())
 
   @@unique([project_id, professional_id])
@@ -176,22 +129,22 @@ model Application {
 model Contract {
   id                  String     @id @default(uuid())
   project_id          String
-  project             Project    @relation(fields: [project_id], references: [id])
+  project             Project    @relation(fields: [project_id], references: [id], onDelete: Cascade)
   
   professional_id     String
-  professional        Professional @relation(fields: [professional_id], references: [id])
+  professional        Professional @relation(fields: [professional_id], references: [id], onDelete: Cascade)
   
   company_id          String
-  company             Company    @relation(fields: [company_id], references: [id])
+  company             Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
   
-  agreed_amount       Decimal
-  platform_commission Decimal
-  professional_payout Decimal
+  agreed_amount       Float
+  platform_commission Float
+  professional_payout Float
   
   start_date          DateTime?
   end_date            DateTime?
   
-  status              ContractStatus @default(draft)
+  status              String @default("draft")
   signed_at           DateTime?
 
   payments            Payment[]
@@ -201,33 +154,33 @@ model Contract {
 model Payment {
   id                  String     @id @default(uuid())
   contract_id         String
-  contract            Contract   @relation(fields: [contract_id], references: [id])
+  contract            Contract   @relation(fields: [contract_id], references: [id], onDelete: Cascade)
   
   razorpay_order_id   String?
   razorpay_payment_id String?
-  amount              Decimal
+  amount              Float
   
-  status              PaymentStatus @default(pending)
+  status              String @default("pending")
   paid_at             DateTime?
 }
 
 model EventBooking {
   id                  String     @id @default(uuid())
   company_id          String
-  company             Company    @relation(fields: [company_id], references: [id])
+  company             Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
   
   professional_id     String
-  professional        Professional @relation(fields: [professional_id], references: [id])
+  professional        Professional @relation(fields: [professional_id], references: [id], onDelete: Cascade)
   
   event_date          DateTime?
-  duration_hours      Decimal?
+  duration_hours      Float?
   topic               String?
-  event_type          EventType  @default(virtual)
+  event_type          String  @default("virtual")
   
-  agreed_fee          Decimal?
-  platform_commission Decimal?
+  agreed_fee          Float?
+  platform_commission Float?
   
-  status              EventStatus @default(requested)
+  status              String @default("requested")
   
   reviews             Review[]
 }
@@ -235,16 +188,16 @@ model EventBooking {
 model Review {
   id                  String     @id @default(uuid())
   reviewer_id         String
-  reviewer            User       @relation("WrittenReviews", fields: [reviewer_id], references: [id])
+  reviewer            User       @relation("WrittenReviews", fields: [reviewer_id], references: [id], onDelete: Cascade)
   
   reviewee_id         String
-  reviewee            User       @relation("ReceivedReviews", fields: [reviewee_id], references: [id])
+  reviewee            User       @relation("ReceivedReviews", fields: [reviewee_id], references: [id], onDelete: Cascade)
   
   project_id          String?
-  project             Project?   @relation(fields: [project_id], references: [id])
+  project             Project?   @relation(fields: [project_id], references: [id], onDelete: Cascade)
   
   event_booking_id    String?
-  event_booking       EventBooking? @relation(fields: [event_booking_id], references: [id])
+  event_booking       EventBooking? @relation(fields: [event_booking_id], references: [id], onDelete: Cascade)
   
   rating              Int        // 1 to 5
   comment             String?
@@ -254,13 +207,13 @@ model Review {
 model Message {
   id                  String     @id @default(uuid())
   sender_id           String
-  sender              User       @relation("SentMessages", fields: [sender_id], references: [id])
+  sender              User       @relation("SentMessages", fields: [sender_id], references: [id], onDelete: Cascade)
   
   receiver_id         String
-  receiver            User       @relation("ReceivedMessages", fields: [receiver_id], references: [id])
+  receiver            User       @relation("ReceivedMessages", fields: [receiver_id], references: [id], onDelete: Cascade)
   
   contract_id         String?
-  contract            Contract?  @relation(fields: [contract_id], references: [id])
+  contract            Contract?  @relation(fields: [contract_id], references: [id], onDelete: Cascade)
   
   content             String
   is_read             Boolean    @default(false)

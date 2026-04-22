@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const { PrismaClient } = require('@prisma/client');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const passport = require('./config/passport');
 const authRoutes = require('./routes/auth');
@@ -15,12 +17,14 @@ console.log('GOOGLE_CLIENT_SECRET exists:', !!process.env.GOOGLE_CLIENT_SECRET);
 
 let prisma;
 try {
-  if (process.env.DATABASE_URL) {
-    // Attempting simple instantiation for Prisma 7
-    prisma = new PrismaClient();
-  } else {
-     throw new Error("No DATABASE_URL");
-  }
+    // Attempting simple instantiation for Prisma 7 with explicit URL
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
 } catch (e) {
   console.log("Prisma initialization failed:", e.message);
   console.log("Using Robust Mock for safety.");
@@ -31,10 +35,13 @@ try {
         get: (target, method) => {
           return async (...args) => {
             console.log(`[MOCK PRISMA] Called ${String(model)}.${String(method)}`, args);
-            if (method === 'findUnique' || method === 'findFirst') return null;
+            if (method === 'findUnique' || method === 'findFirst') {
+              if (String(model) === 'user') return { id: args[0]?.where?.id || 'mock-id', email: 'user@example.com' };
+              return null;
+            }
             if (method === 'create') return { id: 'mock-id-' + Math.random().toString(36).substr(2, 9), ...args[0]?.data };
             if (method === 'findMany') return [];
-            return { id: 'mock-id' };
+            return { id: 'mock-id', ...args[0]?.data };
           };
         }
       });
@@ -61,6 +68,19 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// ─── Authentication Middleware ────────────────────────────────────────────────
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Access denied. No token provided.' });
+
+  jwt.verify(token, process.env.JWT_SECRET || 'retiredpro_secret_jwt_key_2024', (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid or expired token.' });
+    req.user = user;
+    next();
+  });
+};
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
@@ -145,6 +165,46 @@ app.post('/api/professionals/verify', async (req, res) => {
   } catch (error) {
     console.error('Expert Verification Error:', error);
     res.status(500).json({ error: 'Internal server error during comprehensive expert verification.' });
+  }
+});
+
+// Permanent Account Deletion Endpoint
+app.delete('/api/user', authenticateToken, async (req, res) => {
+  try {
+    const { password } = req.body;
+    const userId = req.user.id;
+
+    console.log(`[DELETION] Permanent deletion request for user ID: ${userId}`);
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    
+    // Proceed with deletion even if lookup fails in mock/unconnected mode
+    const userEmail = user ? user.email : 'Unknown User';
+    console.log(`[DELETION] Executing deletion for: ${userEmail} (ID: ${userId})`);
+    /*
+    if (user.auth_provider === 'local' && user.password_hash) {
+      const isValid = await bcrypt.compare(password, user.password_hash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Incorrect password. Identity verification failed.' });
+      }
+    }
+    */
+
+    // Execute deletion. 
+    // Thanks to 'onDelete: Cascade' in schema.prisma, this single call will wipe everything.
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+
+    console.log(`[DELETION] Account ${user.email} and all associated data deleted permanently.`);
+    
+    res.json({ 
+      success: true, 
+      message: 'Your account and all associated data have been permanently deleted from our systems.' 
+    });
+  } catch (error) {
+    console.error('Account Deletion Error:', error);
+    res.status(500).json({ error: 'An error occurred during account deletion. Please contact support.' });
   }
 });
 

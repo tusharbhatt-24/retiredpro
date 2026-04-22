@@ -114,6 +114,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
                 </select>
               </div>
               <div className="form-group flex-1">
@@ -194,7 +195,8 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
             <div className="section-divider mt-8 mb-4">Education & Qualifications</div>
             {editData.qualifications.map((q, idx) => (
               <div key={idx} className="qualification-row mb-6 bg-slate p-4 rounded-lg">
-                <div className="grid grid-cols-3 gap-4 mb-4 items-end">
+                {/* Education Details Row */}
+                <div className="grid grid-cols-3 gap-4 mb-3 items-end">
                   <div className="form-group">
                     <label className="tiny-label font-bold">1. Degree</label>
                     <input type="text" className="form-control" list="degree-list" value={q.degree} onChange={e => {
@@ -236,6 +238,26 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                   </div>
                 </div>
 
+                {/* Years Row */}
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div className="form-group">
+                    <label className="tiny-label font-bold">Start Year</label>
+                    <input type="text" className="form-control" placeholder="YYYY" value={q.startYear || ''} onChange={e => {
+                      const newQuals = [...editData.qualifications];
+                      newQuals[idx].startYear = e.target.value.replace(/\D/g, '').slice(0, 4);
+                      setEditData({ ...editData, qualifications: newQuals });
+                    }} />
+                  </div>
+                  <div className="form-group">
+                    <label className="tiny-label font-bold">Completion Year</label>
+                    <input type="text" className="form-control" placeholder="YYYY" value={q.endYear || ''} onChange={e => {
+                      const newQuals = [...editData.qualifications];
+                      newQuals[idx].endYear = e.target.value.replace(/\D/g, '').slice(0, 4);
+                      setEditData({ ...editData, qualifications: newQuals });
+                    }} />
+                  </div>
+                </div>
+
                 {/* Conditional Custom Inputs for All 3 */}
                 {(q.degree === 'Not Listed / Other' || q.university === 'Not Listed / Other' || q.institute === 'Not Listed / Other') && (
                   <div className="bg-white p-3 rounded border border-dashed border-primary mt-2">
@@ -273,7 +295,7 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 ...editData,
                 qualifications: [
                   ...editData.qualifications,
-                  { degree: '', university: '', institute: '', custom_degree: '', custom_university: '', custom_institute: '' }
+                  { degree: '', university: '', institute: '', startYear: '', endYear: '', custom_degree: '', custom_university: '', custom_institute: '' }
                 ]
               })}
             >
@@ -398,7 +420,9 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
                 const finalQuals = editData.qualifications.map(q => ({
                   degree: q.degree === 'Not Listed / Other' ? q.custom_degree : q.degree,
                   university: q.university === 'Not Listed / Other' ? q.custom_university : q.university,
-                  institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute
+                  institute: q.institute === 'Not Listed / Other' ? q.custom_institute : q.institute,
+                  startYear: q.startYear,
+                  endYear: q.endYear
                 }));
 
                 const finalWork = editData.work_history.map(w => ({
@@ -417,6 +441,17 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
           </div>
         </div>
         <style jsx="true">{`
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+          :root {
+            --primary-color: #2563eb;
+            --bg-color: var(--bg-color);
+            --text-color: var(--text-primary);
+          }
+          [data-theme='dark'] {
+            --primary-color: #60a5fa;
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+          }
           .onboarding-card h2 { color: var(--primary-color); }
           .form-group { margin-bottom: 1.5rem; }
           .form-group label { display: block; margin-bottom: 0.5rem; }
@@ -498,20 +533,21 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
           align-items: center;
           justify-content: center;
           padding: 2rem;
-          background-color: #f8fafc;
+          background-color: var(--bg-color);
         }
         .onboarding-card {
-          background: white;
+          background: var(--surface-color);
           padding: 3rem;
           border-radius: 24px;
-          box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+          box-shadow: var(--shadow-lg);
           max-width: 900px;
           width: 100%;
           text-align: center;
+          color: var(--text-primary);
         }
         .step-badge {
-          background: #eff6ff;
-          color: #2563eb;
+          background: var(--primary-color);
+          color: white;
           padding: 0.5rem 1rem;
           border-radius: 20px;
           font-weight: 700;
@@ -526,13 +562,15 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
         }
         .option-card {
           padding: 2.5rem;
-          border: 2px solid #f1f5f9;
+          border: 2px solid var(--border-color);
+          background: var(--surface-color);
           border-radius: 20px;
           cursor: pointer;
           transition: all 0.3s ease;
           display: flex;
           flex-direction: column;
           align-items: center;
+          color: var(--text-primary);
         }
         .option-card:hover {
           border-color: #2563eb;
@@ -559,6 +597,13 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
           margin-bottom: 1rem;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+          .onboarding-container { padding: 1rem; }
+          .onboarding-card { padding: 1.5rem; border-radius: 16px; }
+          .onboarding-options { grid-template-columns: 1fr; gap: 1rem; margin-top: 2rem; }
+          .option-card { padding: 1.5rem; }
+        }
       `}</style>
     </div>
   );
@@ -566,60 +611,704 @@ function OnboardingScreen({ user, onComplete, onSkip }) {
 
 
 
-function ProfessionalHome() {
+function SettingsPage({ user, userRole, onBack, theme, toggleTheme, onDeleteAccount }) {
+  const [settings, setSettings] = useState({
+    profileVisible: true,
+    emailAlerts: true,
+    smsAlerts: false,
+    jobRecommendations: true,
+    newsletter: false,
+    twoFactor: false
+  });
+
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Account Deletion Flow States
+  const [deleteStep, setDeleteStep] = useState(null); // 'confirm', 'password', 'warning', 'deleting'
+  const [deletePassword, setDeletePassword] = useState('');
+  const [isDeletingLoading, setIsDeletingLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const toggleSetting = (key) => {
+    if (key === 'twoFactor' && !settings.twoFactor) {
+      setShow2FAModal(true);
+      return;
+    }
+    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleVerify2FA = () => {
+    if (twoFactorCode.length === 6) {
+      setIsVerifying(true);
+      setTimeout(() => {
+        setIsVerifying(false);
+        setSettings(prev => ({ ...prev, twoFactor: true }));
+        setShow2FAModal(false);
+        setTwoFactorCode('');
+        alert("Two-Factor Authentication enabled successfully!");
+      }, 1500);
+    } else {
+      alert("Please enter a valid 6-digit code.");
+    }
+  };
+
   return (
-    <div className="professional-dashboard">
-      <div className="pro-banner">
-        <div className="container">
-          <div className="flex justify-between items-end">
+    <div className="container" style={{ padding: '2rem 1.5rem', maxWidth: '800px' }}>
+      <div className="flex items-center gap-4 mb-8">
+        <button onClick={onBack} className="btn btn-outline btn-sm">← Back</button>
+        <h1 style={{ margin: 0, fontSize: '1.75rem' }}>Account Settings</h1>
+      </div>
+
+      <div className="settings-grid" style={{ display: 'grid', gap: '2rem' }}>
+        {/* Account Section */}
+        <section className="settings-section card">
+          <h3 style={{ fontSize: '1.1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+            👤 Account & Appearance
+          </h3>
+          <div className="setting-row flex justify-between items-center mb-6">
             <div>
-              <div className="expert-badge">🎖️ Senior Expert & Mentor</div>
-              <h1 style={{ marginTop: '0.5rem' }}>Welcome Back, Expert</h1>
-              <p>Your 25+ years of experience is in high demand.</p>
+              <div className="font-bold">Theme Mode</div>
+              <div className="tiny-label">Switch between Light and Dark interface</div>
             </div>
-            <div className="stat-value" style={{ color: 'white' }}>$4,250.00 <span style={{ fontSize: '1rem', fontWeight: 'normal' }}>Earned</span></div>
+            <div className="flex items-center gap-2">
+              <span style={{ fontSize: '0.8rem' }}>{theme === 'light' ? '☀️ Light' : '🌙 Dark'}</span>
+              <label className="switch">
+                <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} />
+                <span className="slider"></span>
+              </label>
+            </div>
           </div>
+          <div className="setting-row flex justify-between items-center mb-4">
+            <div>
+              <div className="font-bold">Public Profile</div>
+              <div className="tiny-label">Allow companies to find you in search results</div>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={settings.profileVisible} onChange={() => toggleSetting('profileVisible')} />
+              <span className="slider"></span>
+            </label>
+          </div>
+          <div className="setting-row flex justify-between items-center">
+            <div>
+              <div className="font-bold">Open to Work</div>
+              <div className="tiny-label">Show active status for new consulting projects</div>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={settings.jobRecommendations} onChange={() => toggleSetting('jobRecommendations')} />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </section>
+
+        {/* Notifications */}
+        <section className="settings-section card">
+          <h3 style={{ fontSize: '1.1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+            🔔 Notification Preferences
+          </h3>
+          <div className="setting-row flex justify-between items-center mb-6">
+            <div>
+              <div className="font-bold">Email Notifications</div>
+              <div className="tiny-label">Receive updates about your account and applications</div>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={settings.emailAlerts} onChange={() => toggleSetting('emailAlerts')} />
+              <span className="slider"></span>
+            </label>
+          </div>
+          <div className="setting-row flex justify-between items-center mb-6">
+            <div>
+              <div className="font-bold">Job Alerts</div>
+              <div className="tiny-label">Daily summary of jobs matching your expertise</div>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={settings.jobRecommendations} onChange={() => toggleSetting('jobRecommendations')} />
+              <span className="slider"></span>
+            </label>
+          </div>
+          <div className="setting-row flex justify-between items-center">
+            <div>
+              <div className="font-bold">SMS Notifications</div>
+              <div className="tiny-label">Urgent project invites via text message</div>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={settings.smsAlerts} onChange={() => toggleSetting('smsAlerts')} />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </section>
+
+        {/* Security Section */}
+        <section className="settings-section card">
+          <h3 style={{ fontSize: '1.1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+            🔒 Security & Privacy
+          </h3>
+          <div className="setting-row flex justify-between items-center mb-6">
+            <div>
+              <div className="font-bold">Two-Factor Authentication</div>
+              <div className="tiny-label">Secure your account with a Google/Authy code</div>
+            </div>
+            <div className="flex items-center gap-3">
+              {settings.twoFactor && <span style={{ fontSize: '0.75rem', color: 'var(--success-color)', fontWeight: 'bold' }}>Active</span>}
+              <label className="switch">
+                <input type="checkbox" checked={settings.twoFactor} onChange={() => toggleSetting('twoFactor')} />
+                <span className="slider"></span>
+              </label>
+            </div>
+          </div>
+          {!settings.twoFactor && (
+            <div
+              style={{ backgroundColor: '#fff7ed', border: '1px solid #ffedd5', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}
+              onClick={() => setShow2FAModal(true)}
+              className="cursor-pointer"
+            >
+              <div className="font-bold text-secondary" style={{ color: '#9a3412', fontSize: '0.85rem' }}>🛡️ Two-Factor Authentication is currently OFF</div>
+              <p style={{ fontSize: '0.75rem', margin: 0, color: '#c2410c' }}>We highly recommend setting this up to protect your professional data.</p>
+              <button className="btn btn-sm btn-outline mt-3" style={{ color: '#c2410c', borderColor: '#c2410c' }}>Setup 2FA Now</button>
+            </div>
+          )}
+          <div className="flex gap-4">
+            <button className="btn btn-outline" style={{ flex: 1 }}>Change Password</button>
+            <button className="btn btn-outline" style={{ flex: 1, color: 'var(--error-color)', borderColor: 'var(--error-color)' }} onClick={() => setDeleteStep('confirm')}>Delete Account Permanently</button>
+          </div>
+        </section>
+
+        <section className="card" style={{ backgroundColor: '#f8fafc', border: '1px dashed var(--border-color)' }}>
+          <div className="flex items-center gap-4">
+            <div style={{ fontSize: '1.5rem' }}>📧</div>
+            <div>
+              <div className="font-bold">Login Email</div>
+              <div className="text-secondary">{user.email}</div>
+            </div>
+            <div style={{ marginLeft: 'auto' }} className="badge badge-success">Google Linked</div>
+          </div>
+        </section>
+      </div>
+
+      {/* Deletion Modal */}
+      {deleteStep && (
+        <div className="modal-overlay" style={{ zIndex: 2000 }}>
+          <div className="edit-modal animate-slide-up" style={{ maxWidth: '400px', textAlign: 'center', padding: '2rem' }}>
+            {deleteStep === 'confirm' && (
+              <div className="delete-step-confirm">
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚠️</div>
+                <h3 style={{ color: 'var(--error-color)', marginBottom: '0.75rem' }}>Delete Account?</h3>
+                <p className="tiny-label text-secondary mb-6">
+                  Permanently delete your account? This action removes all profile data and history.
+                </p>
+                <div className="flex gap-3">
+                  <button className="btn btn-outline flex-1 btn-sm" onClick={() => setDeleteStep(null)}>Cancel</button>
+                  <button className="btn btn-danger flex-1 btn-sm" onClick={() => setDeleteStep('password')}>Continue</button>
+                </div>
+              </div>
+            )}
+
+            {deleteStep === 'password' && (
+              <div className="delete-step-password">
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🔒</div>
+                <h3>Verify Identity</h3>
+                <p className="tiny-label text-secondary mb-4">Enter password to confirm account deletion.</p>
+                <div className="form-group" style={{ textAlign: 'left' }}>
+                  <input
+                    type="password"
+                    className="form-control"
+                    placeholder="Enter your password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && setDeleteStep('warning')}
+                  />
+                  {deleteError && <p className="text-error small mt-2">{deleteError}</p>}
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <button className="btn btn-outline flex-1 btn-sm" onClick={() => setDeleteStep('confirm')}>Back</button>
+                  <button
+                    className="btn btn-primary flex-1 btn-sm"
+                    onClick={() => {
+                      if (deletePassword.length > 0) {
+                        setDeleteStep('warning');
+                        setDeleteError('');
+                      } else {
+                        setDeleteError('Password is required');
+                      }
+                    }}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {deleteStep === 'warning' && (
+              <div className="delete-step-warning">
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🚫</div>
+                <h3 style={{ color: 'var(--error-color)', marginBottom: '0.75rem' }}>Final Warning!</h3>
+                <p className="tiny-label text-secondary mb-4" style={{ fontWeight: 600 }}>
+                  This is permanent. All data will be wiped immediately.
+                </p>
+                <div className="warning-box mb-6" style={{ background: '#fff1f2', border: '1px solid #fecdd3', padding: '0.75rem', borderRadius: '12px', textAlign: 'left' }}>
+                  <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.75rem', color: '#be123c' }}>
+                    <li>Profile removed from searches</li>
+                    <li>Active jobs/apps cancelled</li>
+                  </ul>
+                </div>
+                <div className="flex gap-3">
+                  <button className="btn btn-outline flex-1 btn-sm" onClick={() => setDeleteStep('password')}>Back</button>
+                  <button
+                    className="btn btn-danger flex-1 btn-sm"
+                    onClick={async () => {
+                      setIsDeletingLoading(true);
+                      try {
+                        await onDeleteAccount(deletePassword);
+                      } catch (err) {
+                        setDeleteError(err.message || 'Deletion failed');
+                        setDeleteStep('password');
+                      } finally {
+                        setIsDeletingLoading(false);
+                      }
+                    }}
+                    disabled={isDeletingLoading}
+                  >
+                    {isDeletingLoading ? 'Wiping...' : 'Delete Permanently'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 2FA Setup Modal */}
+      {show2FAModal && (
+        <div className="modal-overlay flex items-center justify-center" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1000, padding: '1rem' }}>
+          <div className="modal-content card" style={{ maxWidth: '450px', width: '100%', padding: '2.5rem', animation: 'fadeIn 0.3s ease-out' }}>
+            <h2 style={{ fontSize: '1.5rem', textAlign: 'center', marginBottom: '1.5rem' }}>Setup 2FA</h2>
+
+            <div className="step-box mb-6" style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.85rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                1. Scan this QR code with your <strong>Authenticator App</strong> (Google Authenticator, Authy, etc.)
+              </div>
+              <div style={{ width: '180px', height: '180px', margin: '0 auto', border: '2px solid var(--border-color)', padding: '10px', borderRadius: ' var(--radius-md)' }}>
+                <img src="/Users/tusharbhatt/work/retirepro/frontend/src/assets/2fa_qr.png" alt="2FA QR Code" style={{ width: '100%', height: '100%' }} />
+              </div>
+            </div>
+
+            <div className="step-box mb-6">
+              <div style={{ fontSize: '0.85rem', marginBottom: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                2. Enter the 6-digit code shown in the app
+              </div>
+              <div className="flex justify-center">
+                <input
+                  type="text"
+                  maxLength="6"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value)}
+                  placeholder="000 000"
+                  style={{
+                    width: '160px',
+                    fontSize: '1.5rem',
+                    textAlign: 'center',
+                    letterSpacing: '5px',
+                    padding: '0.5rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '2px solid var(--primary-color)'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                className="btn btn-primary"
+                onClick={handleVerify2FA}
+                disabled={isVerifying || twoFactorCode.length < 6}
+                style={{ width: '100%', padding: '1rem' }}
+              >
+                {isVerifying ? 'Verifying...' : 'Enable 2FA'}
+              </button>
+              <button className="btn btn-outline" onClick={() => setShow2FAModal(false)} style={{ width: '100%' }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 44px;
+          height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-color: var(--border-color);
+          transition: .3s;
+          border-radius: 24px;
+        }
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 18px;
+          width: 18px;
+          left: 3px;
+          bottom: 3px;
+          background-color: white;
+          transition: .3s;
+          border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .setting-row {
+          padding-bottom: 0.5rem;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function AppliedJobs({ onBack }) {
+  const applications = [
+    {
+      id: 1,
+      project: "Supply Chain Strategy Advisor",
+      company: "Global Logistics Partners",
+      appliedDate: "Oct 12, 2023",
+      status: "Pending",
+      statusColor: "#ff9800",
+      pay: "$150/hr",
+      location: "Remote"
+    },
+    {
+      id: 2,
+      project: "Interim HR Director",
+      company: "Vantage Corp",
+      appliedDate: "Oct 10, 2023",
+      status: "Interview Scheduled",
+      statusColor: "#0d47a1",
+      pay: "$200/hr",
+      location: "New York"
+    },
+    {
+      id: 3,
+      project: "Senior Engineering Consultant",
+      company: "TechScale Innovations",
+      appliedDate: "Oct 05, 2023",
+      status: "Under Review",
+      statusColor: "#64748b",
+      pay: "$180/hr",
+      location: "Bangalore"
+    }
+  ];
+
+  return (
+    <div className="container page-fade-in" style={{ padding: '4rem 0' }}>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <button className="btn btn-link" onClick={onBack} style={{ padding: 0, marginBottom: '0.5rem', color: 'var(--primary-color)' }}>← Back to Dashboard</button>
+          <h1 className="font-display" style={{ margin: 0, color: 'var(--text-primary)' }}>My Applications</h1>
+        </div>
+        <div className="card-premium" style={{ border: '1px solid var(--border-color)', padding: '1rem 2rem', textAlign: 'center' }}>
+          <div className="stat-value" style={{ fontSize: '1.5rem', display: 'block' }}>{applications.length}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Applied</div>
         </div>
       </div>
 
-      <main className="container">
-        <div className="dashboard-stats">
-          <div className="stat-card">
-            <span className="stat-value">12</span>
-            <span className="stat-label">Applications</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-value">3</span>
-            <span className="stat-label">Active Projects</span>
-          </div>
-          <div className="stat-card" style={{ borderTopColor: 'var(--secondary-color)' }}>
-            <span className="stat-value">Verified</span>
-            <span className="stat-label">Status</span>
-          </div>
-        </div>
+      <div className="card-premium">
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}>
+              <th style={{ padding: '1.5rem' }}>Project / Company</th>
+              <th style={{ padding: '1.5rem' }}>Applied Date</th>
+              <th style={{ padding: '1.5rem' }}>Pay Rate</th>
+              <th style={{ padding: '1.5rem' }}>Status</th>
+              <th style={{ padding: '1.5rem' }}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {applications.map((app) => (
+              <tr key={app.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                <td style={{ padding: '1.5rem' }}>
+                  <div style={{ fontWeight: 600 }}>{app.project}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{app.company} • {app.location}</div>
+                </td>
+                <td style={{ padding: '1.5rem', color: 'var(--text-secondary)' }}>{app.appliedDate}</td>
+                <td style={{ padding: '1.5rem', fontWeight: 500 }}>{app.pay}</td>
+                <td style={{ padding: '1.5rem' }}>
+                  <span style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    backgroundColor: `${app.statusColor}15`,
+                    color: app.statusColor,
+                    border: `1px solid ${app.statusColor}30`
+                  }}>
+                    {app.status}
+                  </span>
+                </td>
+                <td style={{ padding: '1.5rem' }}>
+                  <button className="btn btn-outline btn-sm">View Details</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
-        <div className="section-header flex justify-between items-center mb-6">
-          <h2 className="view-title">Recommended for Your Expertise</h2>
-          <btn className="btn btn-outline">View All Jobs</btn>
-        </div>
+function ProfessionalHome({ onNavigateToApplications }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('All Industries');
+  const [sortBy, setSortBy] = useState('Newest First');
 
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          {[
-            { title: "Supply Chain Advisor", company: "Metro Logistics", pay: "$150/hr", tags: ["Logistics", "Strategy"] },
-            { title: "Interim HR Director", company: "Vantage Corp", pay: "$200/hr", tags: ["HR", "Change Management"] }
-          ].map((job, idx) => (
-            <div key={idx} className="job-card">
-              <div className="flex justify-between">
-                <h3 style={{ margin: 0 }}>{job.title}</h3>
-                <span style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>{job.pay}</span>
+  const jobs = [
+    {
+      id: 1,
+      title: "Strategic Supply Chain Advisor",
+      company: "Metro Logistics Global",
+      pay: "$180/hr",
+      location: "Remote / New York",
+      type: "Consulting",
+      posted: "2 days ago",
+      tags: ["Logistics", "Strategy", "Operations"],
+      isPremium: true
+    },
+    {
+      id: 2,
+      title: "Interim Chief HR Director",
+      company: "Vantage Corp International",
+      pay: "$220/hr",
+      location: "Hybrid / London",
+      type: "Interim Leadership",
+      posted: "5 hours ago",
+      tags: ["HR", "Change Management", "M&A"],
+      isPremium: true
+    },
+    {
+      id: 3,
+      title: "Senior Engineering Mentor",
+      company: "TechScale Innovations",
+      pay: "$150/hr",
+      location: "On-site / Bangalore",
+      type: "Mentorship",
+      posted: "1 day ago",
+      tags: ["Engineering", "Leadership", "L&D"],
+      isPremium: false
+    }
+  ];
+
+  const sortedJobs = [...jobs].sort((a, b) => {
+    if (sortBy === 'Highest Pay') {
+      const payA = parseInt(a.pay.replace(/\D/g, '')) || 0;
+      const payB = parseInt(b.pay.replace(/\D/g, '')) || 0;
+      return payB - payA;
+    }
+    return b.id - a.id;
+  });
+
+  return (
+    <div className="professional-dashboard page-fade-in" style={{ backgroundColor: 'transparent', minHeight: '100vh', padding: '2rem 0 5rem 0' }}>
+      <main className="container" style={{ maxWidth: '1000px' }}>
+
+        {/* 1. Hero Section Card */}
+        <section className="section-spacer">
+          <div className="card-premium" style={{ background: 'linear-gradient(135deg, #0d47a1 0%, #1a237e 100%)', padding: '3rem', border: 'none' }}>
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="expert-badge" style={{ marginBottom: '1.25rem', backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }}>🏅 Distinguished Expert & Mentor</div>
+                <h1 className="font-display" style={{ color: 'white', fontSize: '3rem', marginBottom: '0.5rem', lineHeight: 1.1 }}>Welcome back, Senior Expert</h1>
+                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem', margin: 0 }}>Your 25+ years of institutional wisdom is our greatest asset.</p>
               </div>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{job.company}</p>
-              <div className="flex gap-2">
-                {job.tags.map(tag => <span key={tag} className="job-tag">{tag}</span>)}
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Consulting Impact</div>
+                <div style={{ color: 'white', fontSize: '2.75rem', fontWeight: 700 }}>$12,450.00</div>
               </div>
-              <button className="btn btn-primary" style={{ width: '100%', marginTop: 'auto' }}>Apply Now</button>
             </div>
-          ))}
+          </div>
+        </section>
+
+        {/* 2. Stats Row */}
+        <section className="section-spacer">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="card-premium" style={{ padding: '1.75rem', cursor: 'pointer' }} onClick={onNavigateToApplications}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>Pending Applications</div>
+                  <div className="stat-value" style={{ fontSize: '2.25rem' }}>12</div>
+                </div>
+                <div style={{ fontSize: '1.5rem', opacity: 0.8 }}>📩</div>
+              </div>
+              <div style={{ marginTop: '1.25rem', fontSize: '0.8rem', color: 'var(--primary-color)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Manage Applications <span>→</span>
+              </div>
+            </div>
+            <div className="card-premium" style={{ padding: '1.75rem' }}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>Active Projects</div>
+                  <div className="stat-value" style={{ fontSize: '2.25rem' }}>3</div>
+                </div>
+                <div style={{ fontSize: '1.5rem', opacity: 0.8 }}>💼</div>
+              </div>
+              <div style={{ marginTop: '1.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Currently in progress</div>
+            </div>
+            <div className="card-premium" style={{ padding: '1.75rem' }}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>Expert Status</div>
+                  <div className="stat-value" style={{ fontSize: '2.25rem', color: 'var(--success-color)' }}>Verified</div>
+                </div>
+                <div style={{ fontSize: '1.5rem', opacity: 0.8 }}>✅</div>
+              </div>
+              <div style={{ marginTop: '1.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Badges Active</div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. Search & Filter Bar Card */}
+        <section className="section-spacer">
+          <div className="card-premium" style={{ padding: '1.5rem' }}>
+            <div className="flex gap-4">
+              <div className="flex-1" style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search by role, expertise, or company..."
+                  className="form-input"
+                  style={{ paddingLeft: '2.75rem', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-primary)', height: '3.5rem', fontSize: '1rem' }}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div style={{ width: '240px' }}>
+                <select
+                  className="form-input"
+                  style={{ border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-primary)', height: '3.5rem', fontSize: '1rem' }}
+                  value={selectedIndustry}
+                  onChange={(e) => setSelectedIndustry(e.target.value)}
+                >
+                  <option>All Industries</option>
+                  <option>Logistics</option>
+                  <option>Human Resources</option>
+                  <option>Technology</option>
+                  <option>Finance</option>
+                </select>
+              </div>
+              <button className="btn btn-primary" style={{ padding: '0 2.5rem', height: '3.5rem', fontSize: '1rem' }}>Find Jobs</button>
+            </div>
+          </div>
+        </section>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: '40px', alignItems: 'start' }}>
+          {/* 4. Main Job Feed */}
+          <div style={{ gridColumn: 'span 2' }}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-display" style={{ fontSize: '2rem', margin: 0, color: 'var(--text-primary)' }}>Opportunities for Your Legacy</h2>
+              <div className="flex items-center gap-4">
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{jobs.length} roles</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Sort by:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    style={{ border: 'none', background: 'transparent', color: 'var(--primary-color)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option>Newest First</option>
+                    <option>Highest Pay</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="job-list-premium flex flex-col gap-10">
+              {sortedJobs.map((job) => (
+                <div key={job.id} className="card-premium" style={{ padding: '2rem' }}>
+                  <div className="job-card-header">
+                    <div className="flex gap-5">
+                      <div className="company-logo-placeholder" style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'var(--border-color)', color: 'var(--text-primary)' }}>🏢</div>
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="font-display" style={{ margin: 0, fontSize: '1.5rem' }}>{job.title}</h3>
+                          {job.isPremium && <span className="legacy-badge">Verified Expert</span>}
+                        </div>
+                        <p style={{ margin: 0, fontWeight: 600, color: 'var(--primary-color)', fontSize: '1rem' }}>{job.company}</p>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '1.75rem', color: 'var(--text-primary)', lineHeight: 1, fontWeight: 700 }}>{job.pay}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>per hour</div>
+                    </div>
+                  </div>
+
+                  <div className="job-meta" style={{ margin: '1.5rem 0' }}>
+                    <div className="job-meta-item" style={{ fontSize: '0.9rem' }}>📍 {job.location}</div>
+                    <div className="job-meta-item" style={{ fontSize: '0.9rem' }}>💼 {job.type}</div>
+                    <div className="job-meta-item" style={{ fontSize: '0.9rem' }}>🕒 {job.posted}</div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-2">
+                      {job.tags.map(tag => <span key={tag} className="job-tag-premium" style={{ padding: '0.4rem 1rem' }}>{tag}</span>)}
+                    </div>
+                    <div className="flex gap-4">
+                      <button className="btn btn-outline" style={{ border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '0.75rem 1.5rem' }}>View Details</button>
+                      <button className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>Apply Now</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 5. Profile Strength & Recommendations Sidebar */}
+          <div className="flex flex-col gap-6" style={{ position: 'sticky', top: '2rem' }}>
+            <div className="card-premium" style={{ padding: '1rem', border: '1px solid var(--border-color)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div style={{ fontSize: '1rem' }}>📊</div>
+                <h3 className="font-display" style={{ fontSize: '0.95rem', margin: 0 }}>Profile Strength</h3>
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <div className="flex justify-between items-end mb-1">
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Status</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-color)' }}>85%</span>
+                </div>
+                <div style={{ width: '100%', height: '5px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: '85%', height: '100%', background: 'linear-gradient(to right, var(--primary-color), #4f46e5)', borderRadius: '4px' }}></div>
+                </div>
+              </div>
+              
+              <button className="btn btn-primary" style={{ width: '100%', padding: '0.6rem', fontSize: '0.8rem' }}>Complete</button>
+            </div>
+
+            <div className="card-premium" style={{ padding: '1rem' }}>
+              <h3 className="font-display" style={{ fontSize: '0.95rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.4rem' }}>Recommended</h3>
+              <div className="flex flex-col gap-4">
+                {[
+                  { title: "M&A Advisor", pay: "$250", icon: "💎" },
+                  { title: "L&D Design", pay: "$140", icon: "🎓" }
+                ].map((rec, i) => (
+                  <div key={i} className="flex gap-2 items-start">
+                    <div style={{ fontSize: '1rem', padding: '0.3rem', background: 'var(--bg-color)', borderRadius: '6px' }}>{rec.icon}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: '1px', lineHeight: 1.2 }}>{rec.title}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}><span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>{rec.pay}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button className="btn btn-outline" style={{ width: '100%', marginTop: '1.25rem', padding: '0.5rem', fontSize: '0.75rem' }}>View More</button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -1120,8 +1809,16 @@ function ProfessionalSignup() {
                     </div>
                   )}
                   {formData.resume && (
-                    <div className="verified-file-badge">
+                    <div className="verified-file-badge flex items-center gap-3">
                       <span className="badge badge-success">✓ {resumeName} Analyzed</span>
+                      <button 
+                        type="button" 
+                        className="btn-link" 
+                        style={{ fontSize: '0.8rem', color: 'var(--primary-color)', fontWeight: 600 }}
+                        onClick={() => window.open(URL.createObjectURL(formData.resume), '_blank')}
+                      >
+                        View
+                      </button>
                       <button type="button" className="btn-link" onClick={() => setFormData({ ...formData, resume: null })}>Change</button>
                     </div>
                   )}
@@ -1402,8 +2099,8 @@ function CompanySignup() {
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
           <h2>Application Received!</h2>
           <p>Thank you, <strong>{formData.companyName}</strong>. Your legal documents and registration IDs are now under manual review.</p>
-          <div style={{ backgroundColor: '#f0f9ff', padding: '1rem', borderRadius: 'var(--radius-md)', margin: '1.5rem 0' }}>
-            <strong>Status:</strong> <span style={{ color: 'var(--secondary-color)' }}>Pending Review</span>
+          <div style={{ backgroundColor: 'rgba(13, 71, 161, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)', margin: '1.5rem 0', border: '1px solid var(--border-color)' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Status:</strong> <span style={{ color: 'var(--secondary-color)' }}>Pending Review</span>
           </div>
           <p className="text-secondary">We will notify you at {formData.businessEmail} once verified.</p>
           <button className="btn btn-primary mt-4" onClick={() => window.location.reload()}>Return to Dashboard</button>
@@ -1582,6 +2279,18 @@ function RoleSelection({ onSelect }) {
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const userDropdownRef = useRef(null);
+  const notifDropdownRef = useRef(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem('rp_theme') || 'light');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('rp_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
   const [activeTab, setActiveTab] = useState('companies');
   const [userRole, setUserRole] = useState(null);
   const [activeView, setActiveView] = useState('home');
@@ -1611,6 +2320,21 @@ function App() {
     { id: 4, type: 'message', text: 'Someone from Microsoft wants to connect', time: '2d ago', unread: false, icon: '💬' },
   ]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
+        setShowNotifDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -1665,6 +2389,31 @@ function App() {
     navigate('/');
   };
 
+  const handleDeleteAccount = async (password) => {
+    try {
+      const response = await fetch(`${API_BASE || 'http://localhost:5050'}/api/user`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authData.token}`
+        },
+        body: JSON.stringify({ password })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account. Please verify your password.');
+      }
+
+      // Success
+      alert("Account deleted permanently. We're sorry to see you go.");
+      handleLogout();
+    } catch (error) {
+      console.error("Deletion error:", error);
+      throw error;
+    }
+  };
+
   const handleRoleSelect = (role) => {
     setUserRole(role);
   };
@@ -1706,7 +2455,7 @@ function App() {
                 fontSize: '1.2rem'
               }}>RP</div>
               <div onClick={handleResetRole} style={{ cursor: 'pointer' }}>
-                <h2 style={{ marginBottom: 0, color: 'var(--primary-color)' }}>RetirePro</h2>
+                <span className="navbar-logo-text" style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--primary-color)' }}>RetirePro</span>
               </div>
             </div>
             <div className="nav-links flex gap-6 items-center">
@@ -1726,32 +2475,30 @@ function App() {
                 <>
                   <a href="#" className={activeView === 'home' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Home</a>
                   <a href="#" className={activeView === 'verification' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Account</a>
-                  <button className="btn btn-outline" style={{ marginRight: '0.5rem' }}>Our Talent</button>
-                  <button className={`btn ${activeView === 'profile' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveView('profile')}>My Profile</button>
+                  <button className="btn btn-outline">Our Talent</button>
                 </>
               ) : (
                 <>
                   <a href="#" className={activeView === 'home' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('home'); }}>Find Jobs</a>
-                  <a href="#" className={activeView === 'verification' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('verification'); }}>Verify Expert Status</a>
-                  <button className={`btn ${activeView === 'profile' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveView('profile')}>My Profile</button>
+                  <a href="#" className={activeView === 'applications' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('applications'); }}>My Applications</a>
                 </>
               )}
 
               {/* Notification Bell */}
-              <div className="notif-container">
+              <div className="notif-container" ref={notifDropdownRef}>
                 <div className={`bell-icon ${showNotifDropdown ? 'active' : ''}`} onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z"/>
+                    <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" />
                   </svg>
                   {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
                 </div>
-                
+
                 {showNotifDropdown && (
                   <div className="notif-dropdown">
                     <div className="notif-header">
                       <h4>Notifications</h4>
-                      <button 
-                        className="btn btn-xs btn-outline" 
+                      <button
+                        className="btn btn-xs btn-outline"
                         onClick={(e) => { e.stopPropagation(); markAllRead(); }}
                         style={{ fontSize: '0.7rem' }}
                       >
@@ -1777,25 +2524,63 @@ function App() {
                 )}
               </div>
 
-              {/* User avatar + logout */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div className="nav-user-avatar" title={user.name || user.email}>
+              {/* User avatar with dropdown */}
+              <div className="user-nav-container" ref={userDropdownRef}>
+                <div
+                  className={`nav-user-avatar cursor-pointer ${showUserDropdown ? 'active' : ''}`}
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  title={user.name || user.email}
+                >
                   {(parsedProfile?.avatar || user.avatar)
                     ? <img src={parsedProfile?.avatar || user.avatar} alt={user.name} referrerPolicy="no-referrer" />
                     : initials
                   }
+                  {userRole === 'Professional' && !parsedProfile?.isVerified && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '0',
+                      right: '0',
+                      width: '10px',
+                      height: '10px',
+                      backgroundColor: 'var(--error-color)',
+                      borderRadius: '50%',
+                      border: '2px solid white'
+                    }}></div>
+                  )}
                 </div>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px',
-                    padding: '0.3rem 0.7rem', fontSize: '0.72rem', cursor: 'pointer',
-                    color: 'var(--text-secondary)', fontWeight: '600'
-                  }}
-                  title="Logout"
-                >
-                  Logout
-                </button>
+
+                {showUserDropdown && (
+                  <div className="user-dropdown">
+                    <div className="dropdown-user-info">
+                      <div className="dropdown-initials">
+                        {(parsedProfile?.avatar || user.avatar)
+                          ? <img src={parsedProfile?.avatar || user.avatar} alt={user.name} />
+                          : initials
+                        }
+                      </div>
+                      <div>
+                        <div className="font-bold">{user.name || 'User'}</div>
+                        <div className="tiny-label text-secondary">{user.email}</div>
+                      </div>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <a href="#" className="dropdown-item" onClick={(e) => { e.preventDefault(); setActiveView('profile'); setShowUserDropdown(false); }}>
+                      <span className="dropdown-icon">👤</span> My Profile
+                    </a>
+                    {userRole === 'Professional' && !parsedProfile?.isVerified && (
+                      <a href="#" className="dropdown-item" style={{ color: 'var(--error-color)', backgroundColor: 'rgba(239, 68, 68, 0.1)' }} onClick={(e) => { e.preventDefault(); setActiveView('verification'); setShowUserDropdown(false); }}>
+                        <span className="dropdown-icon">⚠️</span> Verify Expert Status
+                      </a>
+                    )}
+                    <a href="#" className="dropdown-item" onClick={(e) => { e.preventDefault(); setActiveView('settings'); setShowUserDropdown(false); }}>
+                      <span className="dropdown-icon">⚙️</span> Settings
+                    </a>
+                    <div className="dropdown-divider"></div>
+                    <a href="#" className="dropdown-item logout" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
+                      <span className="dropdown-icon">🚪</span> Logout
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1815,11 +2600,14 @@ function App() {
         ) : userRole === 'Company' ? (
           activeView === 'home' ? <CompanyHome /> :
             activeView === 'verification' ? <CompanySignup /> :
-              <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
+              activeView === 'settings' ? <SettingsPage user={authData.user} userRole={userRole} theme={theme} toggleTheme={toggleTheme} onBack={() => setActiveView('home')} onDeleteAccount={handleDeleteAccount} /> :
+                <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} onDeleteAccount={handleDeleteAccount} />
         ) : (
-          activeView === 'home' ? <ProfessionalHome /> :
-            activeView === 'verification' ? <ProfessionalSignup /> :
-              <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} />
+          activeView === 'home' ? <ProfessionalHome onNavigateToApplications={() => setActiveView('applications')} /> :
+            activeView === 'applications' ? <AppliedJobs onBack={() => setActiveView('home')} /> :
+              activeView === 'verification' ? <ProfessionalSignup /> :
+                activeView === 'settings' ? <SettingsPage user={authData.user} userRole={userRole} theme={theme} toggleTheme={toggleTheme} onBack={() => setActiveView('home')} onDeleteAccount={handleDeleteAccount} /> :
+                  <ProfilePage user={authData.user} userRole={userRole} profileData={parsedProfile} onBack={() => setActiveView('home')} onUpdateProfile={window.updateRetiredProProfile} onDeleteAccount={handleDeleteAccount} />
         )}
 
         {/* Footer */}
